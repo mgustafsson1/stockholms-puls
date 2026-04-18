@@ -1,0 +1,64 @@
+import { useTrafficStream } from "./data/useTrafficStream";
+import { useAppStore } from "./data/store";
+import { Scene } from "./scene/Scene";
+import { Controls } from "./ui/Controls";
+import { Legend } from "./ui/Legend";
+import { Header } from "./ui/Header";
+import { Alerts } from "./ui/Alerts";
+import { InfoPanel } from "./ui/InfoPanel";
+import { StationInfoPanel } from "./ui/StationInfoPanel";
+import { AIPanel } from "./ui/AIPanel";
+
+export default function App() {
+  useTrafficStream();
+  const network = useAppStore((s) => s.network);
+  const connected = useAppStore((s) => s.connected);
+  const showLabels = useAppStore((s) => s.showLabels);
+  const setShowLabels = useAppStore((s) => s.setShowLabels);
+
+  return (
+    <div className="app">
+      <Scene />
+      <div className="ui-overlay">
+        <Header />
+        <Controls />
+        <Legend />
+        <Alerts />
+        <InfoPanel />
+        <StationInfoPanel />
+        <AIPanel />
+        <button
+          onClick={() => setShowLabels(!showLabels)}
+          className="panel"
+          style={{
+            position: "absolute",
+            bottom: 20,
+            left: "50%",
+            transform: "translateX(-50%)",
+            padding: "8px 14px",
+            fontSize: 11,
+            letterSpacing: 0.14,
+            textTransform: "uppercase",
+            background: showLabels ? "rgba(124,196,255,0.12)" : "rgba(10,15,28,0.72)",
+            borderColor: showLabels ? "rgba(124,196,255,0.4)" : "rgba(255,255,255,0.06)",
+            color: showLabels ? "#fff" : "#8b98ad",
+            cursor: "pointer",
+          }}
+        >
+          {showLabels ? "Dölj etiketter" : "Visa etiketter"}
+        </button>
+        <div className="footer" style={{ bottom: 60 }}>Data via Trafiklab GTFS-RT · Simulator vid saknad nyckel · {network?.stations.length ?? "—"} stationer</div>
+      </div>
+      {!network && (
+        <div className="loading">
+          <div className="row"><div className="spinner" /> Läser in tunnelbanenätet…</div>
+        </div>
+      )}
+      {network && !connected && (
+        <div className="loading" style={{ alignItems: "start", paddingTop: 120 }}>
+          <div className="row"><div className="spinner" /> Återansluter realtidsström…</div>
+        </div>
+      )}
+    </div>
+  );
+}

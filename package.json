@@ -1,0 +1,15 @@
+{
+  "name": "stockholms-puls",
+  "private": true,
+  "version": "0.1.0",
+  "description": "3D realtidsvisualisering av Stockholms tunnelbana",
+  "scripts": {
+    "dev": "concurrently -n server,client -c cyan,magenta \"npm --prefix server run dev\" \"npm --prefix client run dev\"",
+    "build": "npm --prefix client run build",
+    "start": "npm --prefix server start",
+    "install:all": "npm install && npm --prefix server install && npm --prefix client install"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  }
+}
