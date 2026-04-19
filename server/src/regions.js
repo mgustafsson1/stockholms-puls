@@ -32,6 +32,19 @@ export const REGIONS = [
     matchMaxMetersForced: 180,
     ferryMaxMeters: 1800,
   },
+  {
+    id: "blekinge",
+    label: "Blekinge",
+    operator: "blekinge",
+    operatorPrefixes: ["9011006", "9011636"],
+    origin: { lat: 56.1616, lon: 15.5866, label: "Karlskrona C" },
+    bbox: { minLat: 55.9, maxLat: 56.5, minLon: 14.3, maxLon: 16.2 },
+    keepExistingSubway: false,
+    useTripMap: false,
+    matchMaxMeters: 200,
+    matchMaxMetersForced: 200,
+    ferryMaxMeters: 2500,
+  },
 ];
 
 export function regionById(id) {

@@ -1,0 +1,92 @@
+{
+  "origin": {
+    "lat": 56.1616,
+    "lon": 15.5866,
+    "label": "Karlskrona C"
+  },
+  "stations": [
+    {
+      "id": "141",
+      "name": "Bromölla station",
+      "lat": 56.067266,
+      "lon": 14.479264,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "79",
+      "name": "Sölvesborgs resecentrum",
+      "lat": 56.050293,
+      "lon": 14.583849,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "68228",
+      "name": "Mörrum station",
+      "lat": 56.186854,
+      "lon": 14.742953,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "73",
+      "name": "Karlshamns resecentrum",
+      "lat": 56.175806,
+      "lon": 14.867536,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "368",
+      "name": "Bräkne Hoby",
+      "lat": 56.230799,
+      "lon": 15.115634,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "69",
+      "name": "Ronneby resecentrum",
+      "lat": 56.206431,
+      "lon": 15.283848,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "1537",
+      "name": "Bergåsa station",
+      "lat": 56.182631,
+      "lon": 15.601347,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "230",
+      "name": "Karlskrona Centralstation",
+      "lat": 56.166671,
+      "lon": 15.585368,
+      "depth": 0,
+      "mode": "rail"
+    }
+  ],
+  "lines": [
+    {
+      "id": "J802",
+      "line": "802",
+      "name": "Ø Karlskrona - Kristianstad - Malmö - København",
+      "color": "#ff7a1f",
+      "mode": "rail",
+      "stations": [
+        "141",
+        "79",
+        "68228",
+        "73",
+        "368",
+        "69",
+        "1537",
+        "230"
+      ]
+    }
+  ]
+}
