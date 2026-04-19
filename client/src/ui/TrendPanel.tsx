@@ -17,29 +17,19 @@ interface Sample {
   }>;
 }
 
-interface TrendsResponse {
-  intervalMs: number;
-  maxSamples: number;
-  samples: Sample[];
-}
-
 interface GroupDef {
   id: string;
   label: string;
   color: string;
+  mode?: string;
 }
 
-const GROUPS: GroupDef[] = [
-  { id: "red",          label: "Röd (T13/T14)",     color: "#ff3d4a" },
-  { id: "green",        label: "Grön (T17-T19)",    color: "#4bd582" },
-  { id: "blue",         label: "Blå (T10/T11)",     color: "#39a7ff" },
-  { id: "rail",         label: "Pendeltåg",         color: "#ff7a1f" },
-  { id: "tvarbana",     label: "Tvärbanan",         color: "#b084ff" },
-  { id: "roslagsbanan", label: "Roslagsbanan",      color: "#c266d9" },
-  { id: "saltsjobanan", label: "Saltsjöbanan",      color: "#ff6fb5" },
-  { id: "tram",         label: "Spårvagn",          color: "#f4c430" },
-  { id: "ferry",        label: "Pendelbåt",         color: "#24d4d4" },
-];
+interface TrendsResponse {
+  intervalMs: number;
+  maxSamples: number;
+  groups?: GroupDef[];
+  samples: Sample[];
+}
 
 const METRICS: { id: Metric; label: string; unit: string }[] = [
   { id: "avgDelay",    label: "Snittförsening",   unit: "s" },
@@ -77,10 +67,21 @@ export function TrendPanel() {
     };
   }, [regionId]);
 
+  // Only show groups that have at least one non-zero data point in the current
+  // window – otherwise regions with a handful of lines render a forest of dead
+  // rows.
+  const groups = useMemo<GroupDef[]>(() => {
+    if (!data?.groups?.length) return [];
+    return data.groups.filter((g) => data.samples.some((s) => {
+      const gd = s.byGroup[g.id];
+      return gd && gd.total > 0;
+    }));
+  }, [data]);
+
   const series = useMemo(() => {
     if (!data) return new Map<string, number[]>();
     const out = new Map<string, number[]>();
-    for (const g of GROUPS) {
+    for (const g of groups) {
       const arr: number[] = [];
       for (const s of data.samples) {
         const gd = s.byGroup[g.id];
@@ -98,7 +99,7 @@ export function TrendPanel() {
       out.set(g.id, arr);
     }
     return out;
-  }, [data, metric]);
+  }, [data, metric, groups]);
 
   const spanMinutes = data ? Math.round((data.samples.length * data.intervalMs) / 60_000) : 0;
   const metricMeta = METRICS.find((m) => m.id === metric)!;
@@ -149,7 +150,12 @@ export function TrendPanel() {
           </div>
 
           <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 6, maxHeight: 360, overflowY: "auto", paddingRight: 4 }}>
-            {GROUPS.map((g) => {
+            {groups.length === 0 && data && data.samples.length > 0 && (
+              <div style={{ fontSize: 11, color: "#6b778c" }}>
+                Ingen aktiv trafik i mätfönstret än.
+              </div>
+            )}
+            {groups.map((g) => {
               const arr = series.get(g.id) ?? [];
               const hasData = arr.some((v) => v > 0);
               const latest = arr.length ? arr[arr.length - 1] : 0;

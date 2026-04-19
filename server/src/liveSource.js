@@ -84,6 +84,26 @@ export class LiveSource {
     clearInterval(this.pruneHandle);
   }
 
+  // Trigger an immediate poll if the last successful fetch is older than
+  // `maxAgeMs`. Used when a fresh WebSocket subscriber attaches so the user
+  // doesn't have to wait up to 30s for the next scheduled tick.
+  ensureFresh(maxAgeMs = 8_000) {
+    if (this.inflightRefresh) return;
+    const age = Date.now() - (this.lastFetchAt || 0);
+    if (age < maxAgeMs) return;
+    this.inflightRefresh = true;
+    Promise.allSettled([
+      this.pollVehicles(),
+      this.pollTripUpdates(),
+    ]).finally(() => {
+      this.inflightRefresh = false;
+      // pollVehicles writes into this.trains but does not emit itself; the
+      // 1 Hz broadcast loop normally covers that, but we want subscribers to
+      // see fresh data without the 1-sec gap after a region switch.
+      this.emit();
+    });
+  }
+
   async pollTripUpdates() {
     const key = getKey();
     if (!key) return;
@@ -218,6 +238,19 @@ export class LiveSource {
       const delayEntry = tripId ? this.tripDelays.get(tripId) : null;
       const delay = delayEntry?.delay ?? 0;
 
+      const extras = {
+        routeId: v.trip?.routeId ?? null,
+        vehicleLabel: v.vehicle?.label ?? null,
+        licensePlate: v.vehicle?.licensePlate ?? null,
+        speed: typeof v.position.speed === "number" ? v.position.speed : null,
+        bearing: typeof v.position.bearing === "number" ? v.position.bearing : null,
+        occupancy: occupancyName(v.occupancyStatus),
+        currentStatus: currentStatusName(v.currentStatus),
+        feedTimestamp: typeof v.timestamp === "number" ? v.timestamp * 1000
+          : v.timestamp?.low != null ? Number(v.timestamp.low) * 1000
+          : null,
+      };
+
       // Buses never match our rail segments — render at raw GPS.
       if (tripInfo?.mode === "bus") {
         this.trains.set(id, {
@@ -237,6 +270,10 @@ export class LiveSource {
           lon,
           depth: 0,
           lastUpdate: Date.now(),
+          routeLong: tripInfo.routeLong ?? null,
+          headsign: tripInfo.headsign ?? null,
+          agency: tripInfo.agency ?? null,
+          ...extras,
         });
         continue;
       }
@@ -262,6 +299,7 @@ export class LiveSource {
           lon,
           depth: 0,
           lastUpdate: Date.now(),
+          ...extras,
         });
         continue;
       }
@@ -283,6 +321,10 @@ export class LiveSource {
         lon,
         depth: match.depth,
         lastUpdate: Date.now(),
+        routeLong: tripInfo?.routeLong ?? null,
+        headsign: tripInfo?.headsign ?? null,
+        agency: tripInfo?.agency ?? null,
+        ...extras,
       });
     }
   }
@@ -366,6 +408,28 @@ function classifyStatus(v, delaySec = 0) {
   if (delaySec >= 300) return "stopped";
   if (delaySec >= 60) return "delayed";
   return "ok";
+}
+
+// GTFS-RT OccupancyStatus enum (proto index → name). Some decoders surface the
+// name directly, others the number; normalise both here.
+const OCCUPANCY_NAMES = [
+  "EMPTY", "MANY_SEATS_AVAILABLE", "FEW_SEATS_AVAILABLE",
+  "STANDING_ROOM_ONLY", "CRUSHED_STANDING_ROOM_ONLY",
+  "FULL", "NOT_ACCEPTING_PASSENGERS",
+];
+function occupancyName(v) {
+  if (v == null) return null;
+  if (typeof v === "string") return v;
+  if (typeof v === "number") return OCCUPANCY_NAMES[v] ?? null;
+  return null;
+}
+
+const CURRENT_STATUS_NAMES = ["INCOMING_AT", "STOPPED_AT", "IN_TRANSIT_TO"];
+function currentStatusName(v) {
+  if (v == null) return null;
+  if (typeof v === "string") return v;
+  if (typeof v === "number") return CURRENT_STATUS_NAMES[v] ?? null;
+  return null;
 }
 
 function buildSegments(network) {

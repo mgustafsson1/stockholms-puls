@@ -53,6 +53,8 @@ function modeFromRouteType(rt, longName) {
     if (n.includes("kårstalinjen") || n.includes("österskärslinjen") || n.includes("näsbyparkslinjen")) return "lightrail";
     return "tram";
   }
+  // Bus service types: 3 (classic), 700-series (coach/regional bus/etc).
+  if (rt === 3 || (rt >= 700 && rt < 800)) return "bus";
   return null;
 }
 
@@ -86,6 +88,18 @@ function matchesOperator(routeId, prefixes) {
   return prefixes.some((p) => routeId.startsWith(p));
 }
 
+// ---------- Pass 0: agency.txt (agency_id → human-readable name) ----------
+console.log("[0/6] reading agency.txt");
+const agencyMap = new Map();
+for (const line of readFileSync(`${SRC}/agency.txt`, "utf8").split("\n").slice(1)) {
+  if (!line) continue;
+  const p = parseCsvLine(line);
+  const id = p[0];
+  const name = p[1];
+  if (id) agencyMap.set(id, name);
+}
+console.log(`  → ${agencyMap.size} agencies`);
+
 // ---------- Pass 1: routes.txt (shared across all regions) ----------
 console.log("[1/6] reading routes.txt");
 const routeLines = readFileSync(`${SRC}/routes.txt`, "utf8").split("\n").slice(1);
@@ -96,22 +110,28 @@ for (const region of selected) {
 for (const line of routeLines) {
   if (!line) continue;
   const p = parseCsvLine(line);
-  const [route_id, , short, long, route_type] = p;
+  // routes.txt columns: route_id, agency_id, short, long, route_type, route_desc
+  const [route_id, agency_id, short, long, route_type] = p;
   const rt = Number(route_type);
   const mode = modeFromRouteType(rt, long);
   if (!mode) continue;
+  const agencyName = agencyMap.get(agency_id) || null;
   for (const region of selected) {
     if (region.keepExistingSubway && mode === "subway") continue;
     if (!matchesOperator(route_id, region.operatorPrefixes)) continue;
     routesAllRegions.get(region.id).set(route_id, {
-      route_id, mode, short, long,
+      route_id, mode, short, long, agencyId: agency_id, agencyName,
       color: colorFor(mode, short, long),
-      lineId: `${prefixFor(mode)}${short}`,
+      // Bus "lineId" is just the route number (e.g. "4", "552"); rail/tram
+      // get a mode-letter prefix to keep them unique across modes.
+      lineId: mode === "bus" ? short : `${prefixFor(mode)}${short}`,
     });
   }
 }
 for (const region of selected) {
-  console.log(`  → ${region.id}: ${routesAllRegions.get(region.id).size} non-bus routes`);
+  const all = routesAllRegions.get(region.id);
+  const bus = Array.from(all.values()).filter((r) => r.mode === "bus").length;
+  console.log(`  → ${region.id}: ${all.size} routes (${bus} bus, ${all.size - bus} other)`);
 }
 
 // ---------- Pass 2: trips.txt (find sample trips per route+dir) ----------
@@ -134,15 +154,19 @@ for (let i = 1; i < tripsStream.length; i++) {
   const p = parseCsvLine(line);
   const route_id = p[0];
   const trip_id = p[2];
+  const trip_headsign = p[3] ?? "";
   const direction_id = p[5] ?? p[4] ?? "";
   for (const region of selected) {
     const routes = routesAllRegions.get(region.id);
     if (!routes.has(route_id)) continue;
     const rdata = tripsAllRegions.get(region.id);
-    rdata.tripLookup.set(trip_id, { route_id, direction_id });
+    rdata.tripLookup.set(trip_id, { route_id, direction_id, headsign: trip_headsign });
     const key = `${route_id}|${direction_id}`;
     const n = rdata.perRouteDir.get(key) ?? 0;
-    if (n < 20) rdata.sampleTrips.add(trip_id);
+    // Only sample non-bus routes for the expensive stop_times join below –
+    // bus stops aren't drawn as lines, and there are thousands of bus routes.
+    const route = routes.get(route_id);
+    if (route.mode !== "bus" && n < 20) rdata.sampleTrips.add(trip_id);
     rdata.perRouteDir.set(key, n + 1);
   }
 }
@@ -230,6 +254,9 @@ for (const region of selected) {
     if (dir !== "0") continue;
     const route = routes.get(route_id);
     if (!route) continue;
+    // Bus routes are in the trip map for click-info lookups but should not
+    // be drawn as lines on the scene – skip the geometry build here.
+    if (route.mode === "bus") continue;
     const resolved = [];
     for (const sid of stopIds) {
       const st = resolveStation(sid);
@@ -287,12 +314,16 @@ for (const region of selected) {
   };
   writeFileSync(resolve(outDir, "network.json"), JSON.stringify(merged, null, 2));
 
-  // trip-lines
+  // trip-lines — includes destination/operator for click-info enrichment.
   const tripLines = {};
   for (const [tid, info] of tripLookup) {
     const r = routes.get(info.route_id);
     if (!r) continue;
-    tripLines[tid] = { mode: r.mode, lineId: r.lineId, color: r.color };
+    const entry = { mode: r.mode, lineId: r.lineId, color: r.color };
+    if (r.long) entry.routeLong = r.long;
+    if (info.headsign) entry.headsign = info.headsign;
+    if (r.agencyName) entry.agency = r.agencyName;
+    tripLines[tid] = entry;
   }
   // Stockholm: also include subway trip mappings from old data/subway-trips.json
   if (region.keepExistingSubway) {

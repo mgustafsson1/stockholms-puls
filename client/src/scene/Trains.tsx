@@ -1,9 +1,18 @@
 import { useMemo, useRef } from "react";
-import { useFrame } from "@react-three/fiber";
+import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import type { Projection } from "../data/projection";
 import type { Train } from "../data/types";
 import { useAppStore } from "../data/store";
+
+// Pick a scalar that shrinks vehicles as the camera dollies in so a single
+// dot never covers a whole city block on the OSM basemap. At ~25 scene-units
+// (our overview default) the factor is 1 (unchanged); closer than that the
+// dot proportionally shrinks toward a 0.2 floor.
+function zoomFactor(cameraDistanceToMesh: number) {
+  const f = cameraDistanceToMesh / 25;
+  return Math.max(0.2, Math.min(1, f));
+}
 
 interface Props {
   projection: Projection;
@@ -17,6 +26,10 @@ interface TrainState {
   targetPos: THREE.Vector3;
   currentPos: THREE.Vector3;
   trail: THREE.Vector3[];
+  // Number of snapshots we've received positions for. We only start drawing
+  // the direction-of-travel trail after the second snapshot so that newly
+  // loaded regions don't instantly render a radial swarm of dots.
+  updates: number;
 }
 
 export function Trains({ projection }: Props) {
@@ -46,10 +59,15 @@ export function Trains({ projection }: Props) {
           targetPos: target,
           currentPos: target.clone(),
           trail: [],
+          updates: 1,
         });
       } else {
         const st = current.get(id)!;
         st.train = t;
+        // Only count this as a new datapoint if the reported position actually
+        // moved — lots of parked buses send identical GPS every poll and we
+        // don't want those to accrue a fake trail either.
+        if (st.targetPos.distanceTo(target) > 0.02) st.updates += 1;
         st.targetPos.copy(target);
       }
     }
@@ -75,6 +93,10 @@ export function Trains({ projection }: Props) {
     stateRef.current.forEach((st) => {
       st.currentPos.lerp(st.targetPos, lerpK);
       frameCount += 1;
+      // Hold off on drawing the direction trail until the vehicle has been
+      // seen at two distinct positions — otherwise a freshly loaded region
+      // paints every vehicle with a meaningless little tail.
+      if (st.updates < 2) return;
       if (st.trail.length === 0 || st.trail[st.trail.length - 1].distanceTo(st.currentPos) > 0.16) {
         st.trail.push(st.currentPos.clone());
         if (st.trail.length > TRAIL_LENGTH) st.trail.shift();
@@ -120,6 +142,7 @@ function TrainMesh({
   const haloRef = useRef<THREE.Mesh>(null);
   const trailRef = useRef<THREE.Group>(null);
   const train = state.train;
+  const { camera } = useThree();
 
   const color = useMemo(() => {
     if (train.status === "stopped") return "#ff3030";
@@ -133,19 +156,24 @@ function TrainMesh({
     mode === "rail" ? 1.15 :
     mode === "ferry" ? 1.0 :
     mode === "lightrail" ? 0.8 :
-    mode === "bus" ? 0.5 :
+    mode === "bus" ? 0.75 :
     0.65; // tram
 
   useFrame((s) => {
+    // World-space distance from the camera to the vehicle — used to shrink
+    // dots when dollied in so a single bus doesn't cover a city block.
+    const camDist = camera.position.distanceTo(state.currentPos);
+    const zf = zoomFactor(camDist);
+
     if (meshRef.current) {
       meshRef.current.position.copy(state.currentPos);
       const pulse = 1 + Math.sin(s.clock.elapsedTime * 6 + train.lat * 2) * 0.18;
-      meshRef.current.scale.setScalar((followed ? pulse * 1.8 : pulse) * sizeScale);
+      meshRef.current.scale.setScalar((followed ? pulse * 1.8 : pulse) * sizeScale * zf);
     }
     if (haloRef.current) {
       haloRef.current.position.copy(state.currentPos);
       const pulse = 1 + Math.sin(s.clock.elapsedTime * 3 + train.lat) * 0.15;
-      haloRef.current.scale.setScalar(pulse * (followed ? 2 : 1) * sizeScale);
+      haloRef.current.scale.setScalar(pulse * (followed ? 2 : 1) * sizeScale * zf);
     }
     if (trailRef.current) {
       const children = trailRef.current.children as THREE.Mesh[];
@@ -156,7 +184,7 @@ function TrainMesh({
           child.visible = true;
           child.position.copy(trail[trail.length - 1 - i]);
           const fade = 1 - i / TRAIL_LENGTH;
-          child.scale.setScalar(fade * 0.9 + 0.1);
+          child.scale.setScalar((fade * 0.9 + 0.1) * zf);
           const mat = child.material as THREE.MeshBasicMaterial;
           mat.opacity = fade * 0.55;
         } else {

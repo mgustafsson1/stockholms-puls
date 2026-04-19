@@ -1,9 +1,20 @@
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 const MODEL = "google/gemini-3-flash-preview";
 
-const SYSTEM_PROMPT = `Du är AI-analytiker för Stockholms tunnelbana.
+const MODE_LABEL_SV = {
+  subway: "tunnelbana",
+  rail: "pendeltåg",
+  lightrail: "lokalbana",
+  tram: "spårvagn",
+  ferry: "pendelbåt",
+  bus: "buss",
+};
+
+function buildSystemPrompt(regionLabel, modeSummary) {
+  const modes = modeSummary.length ? modeSummary.join(", ") : "kollektivtrafik";
+  return `Du är AI-analytiker för ${regionLabel}s kollektivtrafik (${modes}).
 Du tar emot ögonblicksbilder av realtidstrafik och ska beskriva läget kortfattat och peka på avvikelser, mönster och risker.
-Skriv på svenska. Var koncis, konkret och trafikspecifik.
+Skriv på svenska. Var koncis, konkret och trafikspecifik. Utgå ENDAST från den region och de trafikslag som listas ovan — nämn inte andra regioner.
 Svara ALLTID som rent JSON enligt schemat:
 {
   "summary": "en rad som beskriver det övergripande läget",
@@ -16,31 +27,57 @@ Ingen markdown, ingen extra text — bara JSON-objektet.
 - observations: 2–4 korta punkter (max ~80 tecken per punkt). Konkreta: linje, plats, delay, orsak.
 - patterns: 0–3 korta punkter om trender eller systempåverkan. Undvik upprepning av observations.
 - mood: calm = nästan inga förseningar; watch = enstaka avvikelser; stressed = flera linjer påverkade eller stopp.`;
+}
 
-function describeTrafficForPrompt(snapshot, network, history) {
-  const byLineGroup = { red: [], green: [], blue: [] };
+function describeTraffic(snapshot, network, history, regionLabel) {
+  // Group by lineId (keeps things generic across regions — Stockholm's RGB
+  // grouping is still visible because T13+T14 appear side by side etc.).
+  const perLine = new Map();
+  const modeCounts = new Map();
   for (const t of snapshot.trains) {
-    if (byLineGroup[t.lineGroup]) byLineGroup[t.lineGroup].push(t);
+    const mode = t.mode ?? "subway";
+    modeCounts.set(mode, (modeCounts.get(mode) ?? 0) + 1);
+    const key = t.lineId || "—";
+    let bucket = perLine.get(key);
+    if (!bucket) {
+      bucket = { lineId: key, mode, total: 0, ok: 0, delayed: 0, stopped: 0 };
+      perLine.set(key, bucket);
+    }
+    bucket.total++;
+    bucket[t.status]++;
   }
 
   const counts = { total: snapshot.trains.length, ok: 0, delayed: 0, stopped: 0 };
   for (const t of snapshot.trains) counts[t.status]++;
 
-  const lineStats = Object.entries(byLineGroup).map(([lg, arr]) => {
-    const delayed = arr.filter((t) => t.status === "delayed").length;
-    const stopped = arr.filter((t) => t.status === "stopped").length;
-    const label = lg === "red" ? "Röda linjen" : lg === "green" ? "Gröna linjen" : "Blå linjen";
-    return `- ${label}: ${arr.length} tåg, ${delayed} försenade, ${stopped} stillastående`;
-  });
+  const modeLine = Array.from(modeCounts.entries())
+    .sort((a, b) => b[1] - a[1])
+    .map(([m, n]) => `${MODE_LABEL_SV[m] ?? m} ${n}`)
+    .join(", ");
+
+  // Only list lines with some activity; skip buses when listing per-line rows
+  // (too noisy — we summarise bus count via the mode line instead).
+  const lineRows = Array.from(perLine.values())
+    .filter((b) => b.mode !== "bus" && b.total > 0)
+    .sort((a, b) => b.stopped + b.delayed - (a.stopped + a.delayed) || b.total - a.total)
+    .slice(0, 12)
+    .map((b) => `- ${b.lineId} (${MODE_LABEL_SV[b.mode] ?? b.mode}): ${b.total} fordon, ${b.delayed} försenade, ${b.stopped} stillastående`);
+  const busCount = modeCounts.get("bus") ?? 0;
+  if (busCount > 0) {
+    const busDelayed = Array.from(perLine.values()).filter((b) => b.mode === "bus").reduce((s, b) => s + b.delayed, 0);
+    const busStopped = Array.from(perLine.values()).filter((b) => b.mode === "bus").reduce((s, b) => s + b.stopped, 0);
+    lineRows.push(`- Buss (alla linjer): ${busCount} fordon, ${busDelayed} försenade, ${busStopped} stillastående`);
+  }
 
   const anomalies = snapshot.trains
     .filter((t) => t.status !== "ok")
     .slice(0, 8)
     .map((t) => {
-      const from = network.stations.find((s) => s.id === t.from)?.name ?? t.from;
-      const to = network.stations.find((s) => s.id === t.to)?.name ?? t.to;
+      const from = network.stations.find((s) => s.id === t.from)?.name ?? (t.from ?? "");
+      const to = network.stations.find((s) => s.id === t.to)?.name ?? (t.to ?? "");
       const statusSv = t.status === "stopped" ? "stillastående" : "försenat";
-      return `  - ${t.lineId} ${from} → ${to}: ${statusSv} ${Math.round(t.delay)}s`;
+      const route = from && to ? `${from} → ${to}` : from || to || "okänd position";
+      return `  - ${t.lineId} ${route}: ${statusSv} ${Math.round(t.delay)}s`;
     });
 
   const alertLines = (snapshot.alerts ?? []).slice(0, 6).map((a) => {
@@ -61,23 +98,26 @@ function describeTrafficForPrompt(snapshot, network, history) {
 
   const ts = new Date(snapshot.t).toLocaleTimeString("sv-SE");
 
-  return `Tidpunkt ${ts}
-Totalt ${counts.total} tåg. I tid: ${counts.ok}, försenade: ${counts.delayed}, stillastående: ${counts.stopped}.
+  return `Region: ${regionLabel}
+Tidpunkt ${ts}
+Totalt ${counts.total} fordon (${modeLine || "inga"}). I tid: ${counts.ok}, försenade: ${counts.delayed}, stillastående: ${counts.stopped}.
 
 Per linje:
-${lineStats.join("\n")}
+${lineRows.length ? lineRows.join("\n") : "  (inga aktiva linjer)"}
 
 Aktiva störningar:
 ${alertLines.length ? alertLines.join("\n") : "  (inga)"}
 
-Avvikande tåg:
+Avvikande fordon:
 ${anomalies.length ? anomalies.join("\n") : "  (inga)"}
 
 ${trend}`;
 }
 
 export class AIAnalyst {
-  constructor({ getSnapshot, network, intervalMs = 90_000 }) {
+  constructor({ regionId, regionLabel, getSnapshot, network, intervalMs = 90_000 }) {
+    this.regionId = regionId;
+    this.regionLabel = regionLabel || regionId;
     this.getSnapshot = getSnapshot;
     this.network = network;
     this.intervalMs = intervalMs;
@@ -88,19 +128,45 @@ export class AIAnalyst {
     this.apiKey = process.env.OPENROUTER_KEY ?? process.env.OPENROUTER_API_KEY ?? null;
     this.stopped = false;
     this.lastError = null;
+    this.refCount = 0;
+    this.handle = null;
+
+    // Precompute the mode summary used in the system prompt. We base this on
+    // what the network declares; if zero vehicles are flowing the prompt still
+    // tells the model what kinds of traffic to expect.
+    const modesInNetwork = new Set();
+    for (const line of network.lines) modesInNetwork.add(line.mode ?? "subway");
+    this.modeSummary = Array.from(modesInNetwork).map((m) => MODE_LABEL_SV[m] ?? m);
 
     if (!this.apiKey) {
-      console.warn("[ai-analyst] no OPENROUTER_KEY set — AI analysis disabled");
-      return;
+      console.warn(`[ai-analyst:${this.regionId}] no OPENROUTER_KEY — disabled`);
     }
+  }
 
-    this.runNow().catch(() => {});
-    this.handle = setInterval(() => this.runNow().catch(() => {}), this.intervalMs);
+  // Called by WS subscribe/unsubscribe. Run analysis only when someone is
+  // watching, stop when the viewer count drops to 0 (saves LLM cost).
+  acquire() {
+    this.refCount++;
+    if (this.refCount === 1 && this.apiKey && !this.handle) {
+      this.stopped = false;
+      this.runNow().catch(() => {});
+      this.handle = setInterval(() => this.runNow().catch(() => {}), this.intervalMs);
+      console.log(`[ai-analyst:${this.regionId}] started (viewers=${this.refCount})`);
+    }
+  }
+
+  release() {
+    this.refCount = Math.max(0, this.refCount - 1);
+    if (this.refCount === 0 && this.handle) {
+      clearInterval(this.handle);
+      this.handle = null;
+      console.log(`[ai-analyst:${this.regionId}] idle — paused`);
+    }
   }
 
   on(fn) {
     this.listeners.add(fn);
-    if (this.latest) fn(this.latest);
+    if (this.latest) fn({ latest: this.latest, error: this.lastError });
     return () => this.listeners.delete(fn);
   }
 
@@ -116,7 +182,8 @@ export class AIAnalyst {
       });
       if (this.history.length > 8) this.history.shift();
 
-      const userContent = describeTrafficForPrompt(snap, this.network, this.history);
+      const systemPrompt = buildSystemPrompt(this.regionLabel, this.modeSummary);
+      const userContent = describeTraffic(snap, this.network, this.history, this.regionLabel);
       const started = Date.now();
 
       const res = await fetch(OPENROUTER_URL, {
@@ -130,7 +197,7 @@ export class AIAnalyst {
         body: JSON.stringify({
           model: MODEL,
           messages: [
-            { role: "system", content: SYSTEM_PROMPT },
+            { role: "system", content: systemPrompt },
             { role: "user", content: userContent },
           ],
           response_format: { type: "json_object" },
@@ -155,17 +222,18 @@ export class AIAnalyst {
         elapsedMs: elapsed,
         model: MODEL,
         snapshotTime: snap.t,
+        regionId: this.regionId,
         summary: String(parsed.summary ?? ""),
         observations: Array.isArray(parsed.observations) ? parsed.observations.map(String).slice(0, 4) : [],
         patterns: Array.isArray(parsed.patterns) ? parsed.patterns.map(String).slice(0, 3) : [],
         mood: ["calm", "watch", "stressed"].includes(parsed.mood) ? parsed.mood : "watch",
       };
       this.lastError = null;
-      console.log(`[ai-analyst] ${this.latest.mood.toUpperCase()} · ${this.latest.summary}`);
+      console.log(`[ai-analyst:${this.regionId}] ${this.latest.mood.toUpperCase()} · ${this.latest.summary}`);
       this.emit();
     } catch (err) {
       this.lastError = err.message;
-      console.warn("[ai-analyst] failed:", err.message);
+      console.warn(`[ai-analyst:${this.regionId}] failed:`, err.message);
       this.emit();
     } finally {
       this.inflight = false;
@@ -173,7 +241,7 @@ export class AIAnalyst {
   }
 
   emit() {
-    const payload = { latest: this.latest, error: this.lastError };
+    const payload = { latest: this.latest, error: this.lastError, regionId: this.regionId };
     for (const fn of this.listeners) {
       try { fn(payload); } catch {}
     }
@@ -181,7 +249,7 @@ export class AIAnalyst {
 
   stop() {
     this.stopped = true;
-    if (this.handle) clearInterval(this.handle);
+    if (this.handle) { clearInterval(this.handle); this.handle = null; }
   }
 }
 

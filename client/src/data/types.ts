@@ -42,6 +42,20 @@ export interface Train {
   lat: number;
   lon: number;
   depth: number;
+  // Optional live-feed extras (mostly useful for buses, where we don't have
+  // route/segment metadata of our own).
+  routeId?: string;
+  vehicleLabel?: string;
+  licensePlate?: string;
+  speed?: number;          // m/s as reported by GTFS-RT
+  bearing?: number;        // degrees, 0 = north
+  occupancy?: string;      // GTFS-RT OccupancyStatus enum name
+  currentStatus?: string;  // IN_TRANSIT_TO, STOPPED_AT, INCOMING_AT
+  feedTimestamp?: number;  // ms since epoch, from VehiclePosition.timestamp
+  // From the static GTFS trip map (joined at ingestion).
+  routeLong?: string;      // route_long_name, e.g. "Radiohuset - Gullmarsplan"
+  headsign?: string;       // trip_headsign (often empty in GTFS Sweden)
+  agency?: string;         // agency_name, e.g. "Skånetrafiken"
 }
 
 export interface Alert {

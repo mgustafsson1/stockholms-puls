@@ -7,7 +7,17 @@ const MODE_BADGE: Record<string, { color: string; label: string }> = {
   lightrail: { color: "#b084ff", label: "L" },
   tram: { color: "#f4c430", label: "S" },
   ferry: { color: "#24d4d4", label: "B" },
+  stop: { color: "#7f88a0", label: "●" }, // generic bus / other stop
 };
+
+interface Suggestion {
+  id: string;
+  name: string;
+  lat: number;
+  lon: number;
+  mode: string;        // "subway" | ... | "stop"
+  kind: "station" | "stop";
+}
 
 function normalize(s: string) {
   return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -15,7 +25,9 @@ function normalize(s: string) {
 
 export function StationSearch() {
   const network = useAppStore((s) => s.network);
+  const extraStops = useAppStore((s) => s.extraStops);
   const setSelected = useAppStore((s) => s.setSelectedStation);
+  const focusOn = useAppStore((s) => s.focusOn);
 
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
@@ -23,13 +35,15 @@ export function StationSearch() {
   const inputRef = useRef<HTMLInputElement>(null);
   const blurTimer = useRef<number | null>(null);
 
-  const suggestions = useMemo(() => {
+  const suggestions = useMemo<Suggestion[]>(() => {
     if (!network) return [];
     const raw = query.trim();
     if (!raw) return [];
     const q = normalize(raw);
     const seen = new Set<string>();
-    const out: { station: typeof network.stations[number]; score: number }[] = [];
+    const out: { suggestion: Suggestion; score: number }[] = [];
+
+    // Rail/metro/ferry stations first so they rank above bus stops on ties.
     for (const s of network.stations) {
       const name = normalize(s.name);
       const hit = name.indexOf(q);
@@ -38,11 +52,46 @@ export function StationSearch() {
       if (seen.has(key)) continue;
       seen.add(key);
       const score = hit === 0 ? 0 : hit < 3 ? 1 : 2;
-      out.push({ station: s, score });
+      out.push({
+        suggestion: {
+          id: s.id,
+          name: s.name,
+          lat: s.lat,
+          lon: s.lon,
+          mode: s.mode ?? "subway",
+          kind: "station",
+        },
+        score,
+      });
     }
-    out.sort((a, b) => a.score - b.score || a.station.name.localeCompare(b.station.name, "sv"));
-    return out.slice(0, 10).map((x) => x.station);
-  }, [network, query]);
+
+    // Bus/other stops: penalize score slightly so rail stations win ties but
+    // still surface in prefix matches.
+    for (const s of extraStops) {
+      if (out.length > 60) break; // cap scanning effort on giant regions
+      const name = normalize(s.name);
+      const hit = name.indexOf(q);
+      if (hit < 0) continue;
+      const key = `${s.name}|stop`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      const score = (hit === 0 ? 0 : hit < 3 ? 1 : 2) + 0.5;
+      out.push({
+        suggestion: {
+          id: `stop:${s.id}`,
+          name: s.name,
+          lat: s.lat,
+          lon: s.lon,
+          mode: "stop",
+          kind: "stop",
+        },
+        score,
+      });
+    }
+
+    out.sort((a, b) => a.score - b.score || a.suggestion.name.localeCompare(b.suggestion.name, "sv"));
+    return out.slice(0, 12).map((x) => x.suggestion);
+  }, [network, extraStops, query]);
 
   useEffect(() => {
     setHighlightedIdx(0);
@@ -65,8 +114,14 @@ export function StationSearch() {
     return () => window.removeEventListener("keydown", handler);
   }, []);
 
-  function pickStation(id: string) {
-    setSelected(id);
+  function pickSuggestion(s: Suggestion) {
+    if (s.kind === "station") {
+      setSelected(s.id);
+    } else {
+      // Stops are not part of the drawn station graph; fly the camera to the
+      // coordinate instead of trying to open the station info panel.
+      focusOn(s.lat, s.lon, s.name);
+    }
     setQuery("");
     setOpen(false);
     inputRef.current?.blur();
@@ -82,7 +137,7 @@ export function StationSearch() {
       setHighlightedIdx((i) => Math.max(i - 1, 0));
     } else if (e.key === "Enter") {
       const hit = suggestions[highlightedIdx];
-      if (hit) pickStation(hit.id);
+      if (hit) pickSuggestion(hit);
     } else if (e.key === "Escape") {
       if (query) {
         setQuery("");
@@ -176,14 +231,14 @@ export function StationSearch() {
           }}
         >
           {suggestions.map((s, i) => {
-            const badge = MODE_BADGE[s.mode ?? "subway"];
+            const badge = MODE_BADGE[s.mode] ?? MODE_BADGE.stop;
             const active = i === highlightedIdx;
             return (
               <button
                 key={`${s.id}-${i}`}
                 onMouseDown={(e) => {
                   e.preventDefault();
-                  pickStation(s.id);
+                  pickSuggestion(s);
                 }}
                 onMouseEnter={() => setHighlightedIdx(i)}
                 style={{
@@ -221,8 +276,8 @@ export function StationSearch() {
                 <span style={{ flex: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                   {s.name}
                 </span>
-                {s.depth > 0 && (
-                  <span style={{ fontSize: 10, color: "#8b98ad" }}>{s.depth} m</span>
+                {s.kind === "stop" && (
+                  <span style={{ fontSize: 10, color: "#8b98ad" }}>hållplats</span>
                 )}
               </button>
             );

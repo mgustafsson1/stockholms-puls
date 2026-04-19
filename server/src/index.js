@@ -14,7 +14,6 @@ import { REGIONS } from "./regions.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DEFAULT_REGION = "stockholm";
-const AI_REGION = "stockholm"; // AI analyst scoped to one region to keep LLM cost sane
 
 function loadRegionData(regionId) {
   const networkPath = resolve(__dirname, `../data/regions/${regionId}/network.json`);
@@ -60,15 +59,26 @@ if (!sources.has(DEFAULT_REGION)) {
   process.exit(1);
 }
 
-const aiAnalyst = new AIAnalyst({
-  getSnapshot: () => sources.get(AI_REGION).snapshot(),
-  network: networks.get(AI_REGION),
-  intervalMs: Number(process.env.AI_INTERVAL_MS ?? 90_000),
-});
+// One AIAnalyst per region, lazily started via acquire/release based on
+// active WS subscribers. A region with no viewers does not burn LLM credits.
+const aiAnalysts = new Map();
+for (const region of REGIONS) {
+  if (!sources.has(region.id)) continue;
+  aiAnalysts.set(region.id, new AIAnalyst({
+    regionId: region.id,
+    regionLabel: region.label,
+    getSnapshot: () => sources.get(region.id).snapshot(),
+    network: networks.get(region.id),
+    intervalMs: Number(process.env.AI_INTERVAL_MS ?? 90_000),
+  }));
+}
+const aiEnabled = !![...aiAnalysts.values()][0]?.apiKey;
 
 const trendRecorders = new Map();
 for (const [id, source] of sources) {
   trendRecorders.set(id, new TrendRecorder({
+    regionId: id,
+    network: networks.get(id),
     getSnapshot: () => source.snapshot(),
     intervalMs: Number(process.env.TREND_INTERVAL_MS ?? 30_000),
     maxSamples: 120,
@@ -107,6 +117,23 @@ app.get("/api/network", (req, res) => {
   res.json(network);
 });
 
+// Extra user-facing stops for a region (bus stops etc. that live outside the
+// drawn rail/ferry network but are still useful for search).
+app.get("/api/stops", (req, res) => {
+  const regionId = String(req.query.region || DEFAULT_REGION);
+  if (!REGIONS.some((r) => r.id === regionId)) {
+    return res.status(404).json({ error: "unknown region" });
+  }
+  const stopsPath = resolve(__dirname, `../data/regions/${regionId}/stops.json`);
+  try {
+    const stops = JSON.parse(readFileSync(stopsPath, "utf8"));
+    res.json(stops);
+  } catch {
+    // Missing file just means the extractor hasn't been run — return empty.
+    res.json([]);
+  }
+});
+
 app.get("/api/status", (_req, res) => {
   const perRegion = {};
   for (const [id, source] of sources) {
@@ -132,12 +159,18 @@ const server = createServer(app);
 const wss = new WebSocketServer({ server, path: "/stream" });
 
 wss.on("connection", (ws) => {
-  let currentRegion = DEFAULT_REGION;
+  let currentRegion = null;
   let unsubscribe = null;
+  let unsubscribeAI = null;
 
   function subscribe(regionId) {
     if (!sources.has(regionId)) return;
+    // Tear down previous region's subscriptions, including the AI analyst
+    // reservation so idle regions can pause.
     if (unsubscribe) unsubscribe();
+    if (unsubscribeAI) unsubscribeAI();
+    if (currentRegion && aiAnalysts.has(currentRegion)) aiAnalysts.get(currentRegion).release();
+
     currentRegion = regionId;
     const source = sources.get(regionId);
     if (ws.readyState === ws.OPEN) {
@@ -149,26 +182,36 @@ wss.on("connection", (ws) => {
         ws.send(JSON.stringify({ type: "snapshot", region: regionId, data: snap }));
       }
     });
+    // Kick off an immediate refresh so the subscriber doesn't see a stale or
+    // empty snapshot while waiting up to 30s for the next scheduled poll.
+    source.ensureFresh?.();
+
+    const analyst = aiAnalysts.get(regionId);
+    if (analyst) {
+      analyst.acquire();
+      // Immediately push the latest cached analysis (may be from a previous
+      // viewer) so the panel isn't empty while the next tick is running.
+      if (analyst.latest) {
+        ws.send(JSON.stringify({ type: "ai", data: { latest: analyst.latest, error: analyst.lastError, regionId } }));
+      } else if (!analyst.apiKey) {
+        ws.send(JSON.stringify({ type: "ai", data: { latest: null, error: null, regionId } }));
+      }
+      unsubscribeAI = analyst.on((payload) => {
+        if (ws.readyState === ws.OPEN) {
+          ws.send(JSON.stringify({ type: "ai", data: payload }));
+        }
+      });
+    }
   }
 
   ws.send(JSON.stringify({
     type: "hello",
     source: usingLive ? "trafiklab" : "simulator",
-    aiEnabled: !!aiAnalyst.apiKey,
+    aiEnabled,
     regions: REGIONS.filter((r) => sources.has(r.id)).map((r) => ({ id: r.id, label: r.label })),
     defaultRegion: DEFAULT_REGION,
   }));
   subscribe(DEFAULT_REGION);
-
-  if (aiAnalyst.latest) {
-    ws.send(JSON.stringify({ type: "ai", data: { latest: aiAnalyst.latest, error: aiAnalyst.lastError } }));
-  }
-
-  const unsubscribeAI = aiAnalyst.on((payload) => {
-    if (ws.readyState === ws.OPEN) {
-      ws.send(JSON.stringify({ type: "ai", data: payload }));
-    }
-  });
 
   ws.on("message", (raw) => {
     try {
@@ -181,7 +224,8 @@ wss.on("connection", (ws) => {
 
   ws.on("close", () => {
     if (unsubscribe) unsubscribe();
-    unsubscribeAI();
+    if (unsubscribeAI) unsubscribeAI();
+    if (currentRegion && aiAnalysts.has(currentRegion)) aiAnalysts.get(currentRegion).release();
   });
 });
 
@@ -193,7 +237,7 @@ server.listen(PORT, () => {
 
 process.on("SIGINT", () => {
   for (const src of sources.values()) src.stop();
-  aiAnalyst.stop();
+  for (const a of aiAnalysts.values()) a.stop();
   for (const rec of trendRecorders.values()) rec.stop();
   server.close(() => process.exit(0));
 });

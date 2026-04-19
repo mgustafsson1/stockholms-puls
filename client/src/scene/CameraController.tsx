@@ -53,6 +53,19 @@ export function CameraController({ projection }: Props) {
     setAutoOrbit(false);
   }, [selectedStationId, network, projection]);
 
+  // Fly to an arbitrary lat/lon (bus stop picked in search, etc.) — this is a
+  // write-only trigger that re-fires even when the same point is picked twice.
+  const focusPoint = useAppStore((s) => s.focusPoint);
+  useEffect(() => {
+    if (!focusPoint) return;
+    const [x, y, z] = projection.projectArray({ lat: focusPoint.lat, lon: focusPoint.lon, depth: 0 });
+    targetVec.current.set(x, y, z);
+    desiredPos.current.set(x + 2.5, y + 3.5, z + 2.5);
+    flyToStationUntil.current = Date.now() + 900;
+    lastInteraction.current = Date.now();
+    setAutoOrbit(false);
+  }, [focusPoint, projection]);
+
   // Reset to overview whenever the active network (region) changes so we're
   // not stuck looking at old coordinates.
   useEffect(() => {
@@ -78,6 +91,50 @@ export function CameraController({ projection }: Props) {
       window.removeEventListener("keydown", handler);
     };
   }, []);
+
+  // Hold shift to swap the left mouse button from pan to rotate — makes
+  // orbit discoverable on trackpads that don't have a right-click.
+  const [shiftHeld, setShiftHeld] = useState(false);
+  useEffect(() => {
+    const down = (e: KeyboardEvent) => { if (e.key === "Shift") setShiftHeld(true); };
+    const up = (e: KeyboardEvent) => { if (e.key === "Shift") setShiftHeld(false); };
+    const blur = () => setShiftHeld(false);
+    window.addEventListener("keydown", down);
+    window.addEventListener("keyup", up);
+    window.addEventListener("blur", blur);
+    return () => {
+      window.removeEventListener("keydown", down);
+      window.removeEventListener("keyup", up);
+      window.removeEventListener("blur", blur);
+    };
+  }, []);
+
+  // Keyboard rotation: Q / E yaw around the orbit target, R / F tilt.
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (!controlsRef.current) return;
+      const tag = (document.activeElement as HTMLElement | null)?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA") return;
+      const target = controlsRef.current.target as THREE.Vector3;
+      const yaw = e.key === "q" || e.key === "Q" ? -0.08
+        : e.key === "e" || e.key === "E" ? 0.08
+        : 0;
+      const pitch = e.key === "r" || e.key === "R" ? -0.06
+        : e.key === "f" || e.key === "F" ? 0.06
+        : 0;
+      if (yaw === 0 && pitch === 0) return;
+      e.preventDefault();
+      const offset = camera.position.clone().sub(target);
+      const spherical = new THREE.Spherical().setFromVector3(offset);
+      spherical.theta += yaw;
+      spherical.phi = THREE.MathUtils.clamp(spherical.phi + pitch, 0.05, Math.PI * 0.92);
+      offset.setFromSpherical(spherical);
+      camera.position.copy(target).add(offset);
+      controlsRef.current.update();
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [camera]);
 
   useFrame((state, delta) => {
     const lerp = Math.min(1, delta * 1.6);
@@ -163,7 +220,9 @@ export function CameraController({ projection }: Props) {
       enableRotate={mode !== "follow" && !autoOrbit}
       screenSpacePanning
       mouseButtons={{
-        LEFT: THREE.MOUSE.PAN,
+        // Hold shift to swap the left mouse button from pan to rotate — the
+        // right mouse button always rotates for users who have that option.
+        LEFT: shiftHeld ? THREE.MOUSE.ROTATE : THREE.MOUSE.PAN,
         MIDDLE: THREE.MOUSE.DOLLY,
         RIGHT: THREE.MOUSE.ROTATE,
       }}

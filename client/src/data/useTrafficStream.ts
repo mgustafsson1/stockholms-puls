@@ -48,6 +48,22 @@ export function useTrafficStream() {
     return () => { cancelled = true; };
   }, [regionId, setNetwork]);
 
+  // Fetch the extra stop list (bus stops etc.) so search can hit them.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`/api/stops?region=${encodeURIComponent(regionId)}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!cancelled && Array.isArray(data)) {
+          useAppStore.getState().setExtraStops(data);
+        }
+      } catch {}
+    })();
+    return () => { cancelled = true; };
+  }, [regionId]);
+
   // WebSocket: reconnect logic independent of region. When region changes
   // while connected, send a set-region message; don't tear down the socket.
   const wsRef = useRef<WebSocket | null>(null);
@@ -86,7 +102,10 @@ export function useTrafficStream() {
             if (msg.region && msg.region !== currentRegionRef.current) return;
             applySnapshot(msg.data);
           } else if (msg.type === "ai") {
-            const { latest, error } = msg.data ?? {};
+            const { latest, error, regionId: msgRegion } = msg.data ?? {};
+            // Drop analyses destined for a region we've since switched away
+            // from so the panel never shows the wrong region's mood.
+            if (msgRegion && msgRegion !== currentRegionRef.current) return;
             useAppStore.getState().setAIAnalysis(latest ?? null, error ?? null);
           }
         } catch (err) {

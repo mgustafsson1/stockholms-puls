@@ -6,7 +6,7 @@ import { useCollapsible, CollapseButton } from "./useCollapsible";
 const MODES: { id: CameraMode; label: string; desc: string }[] = [
   { id: "overview", label: "Översikt", desc: "Fritt 3D-perspektiv" },
   { id: "cross-section", label: "Bergsnitt", desc: "Från sidan — visar djup" },
-  { id: "follow", label: "Följ tåg", desc: "Klicka ett tåg i vyn" },
+  { id: "follow", label: "Följ fordon", desc: "Klicka ett fordon i vyn" },
   { id: "anomaly", label: "Hitta avvikelser", desc: "Zooma till förseningar" },
 ];
 

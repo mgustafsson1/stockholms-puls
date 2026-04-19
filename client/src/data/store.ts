@@ -2,7 +2,7 @@ import { create } from "zustand";
 import type { AIAnalysis, Alert, CameraMode, Network, Snapshot, Train } from "./types";
 
 const HIDDEN_LINES_KEY = "sl:hidden-line-ids";
-const HIDDEN_MODES_KEY = "sl:hidden-modes";
+const HIDDEN_MODES_KEY = "sl:hidden-modes:v2";
 
 function loadHiddenLineIds(): Set<string> {
   try {
@@ -28,14 +28,27 @@ function loadHiddenModes(): Set<string> {
       if (Array.isArray(arr)) return new Set(arr.filter((x): x is string => typeof x === "string"));
     }
   } catch {}
-  // Default: buses off so they don't dominate the rail-focused view.
-  return new Set(["bus"]);
+  return new Set();
 }
 
 function saveHiddenModes(modes: Set<string>) {
   try {
     localStorage.setItem(HIDDEN_MODES_KEY, JSON.stringify(Array.from(modes)));
   } catch {}
+}
+
+export interface ExtraStop {
+  id: string;
+  name: string;
+  lat: number;
+  lon: number;
+}
+
+export interface FocusPoint {
+  lat: number;
+  lon: number;
+  label: string;
+  at: number; // monotonic counter so repeated picks retrigger the camera
 }
 
 interface AppState {
@@ -60,6 +73,8 @@ interface AppState {
   showBasemap: boolean;
   regions: { id: string; label: string }[];
   regionId: string;
+  extraStops: ExtraStop[];
+  focusPoint: FocusPoint | null;
 
   setNetwork: (n: Network) => void;
   setHiddenLineIds: (ids: Set<string>) => void;
@@ -80,6 +95,8 @@ interface AppState {
   setShowLabels: (v: boolean) => void;
   setAIAnalysis: (a: AIAnalysis | null, err: string | null) => void;
   setAIEnabled: (v: boolean) => void;
+  setExtraStops: (stops: ExtraStop[]) => void;
+  focusOn: (lat: number, lon: number, label: string) => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -106,12 +123,27 @@ export const useAppStore = create<AppState>((set) => ({
   })(),
   regions: [],
   regionId: (typeof localStorage !== "undefined" && localStorage.getItem("sl:region")) || "stockholm",
+  extraStops: [],
+  focusPoint: null,
 
   setNetwork: (n) => set({ network: n }),
   setRegions: (list) => set({ regions: list }),
   setRegionId: (id) => {
     try { localStorage.setItem("sl:region", id); } catch {}
-    set({ regionId: id, selectedTrainId: null, selectedStationId: null, followTrainId: null, trains: new Map() });
+    set({
+      regionId: id,
+      selectedTrainId: null,
+      selectedStationId: null,
+      followTrainId: null,
+      trains: new Map(),
+      // Clear the previous region's AI analysis so the panel doesn't briefly
+      // show stale content for the wrong region while we wait for a push.
+      aiAnalysis: null,
+      aiError: null,
+      // Stop search from showing last region's bus stops until the new list
+      // arrives.
+      extraStops: [],
+    });
   },
   setHiddenLineIds: (ids) => {
     saveHiddenLineIds(ids);
@@ -156,4 +188,6 @@ export const useAppStore = create<AppState>((set) => ({
   setShowLabels: (v) => set({ showLabels: v }),
   setAIAnalysis: (a, err) => set({ aiAnalysis: a, aiError: err }),
   setAIEnabled: (v) => set({ aiEnabled: v }),
+  setExtraStops: (stops) => set({ extraStops: stops }),
+  focusOn: (lat, lon, label) => set({ focusPoint: { lat, lon, label, at: Date.now() } }),
 }));

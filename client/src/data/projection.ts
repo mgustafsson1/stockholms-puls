@@ -25,6 +25,17 @@ export function createProjection(network: Network) {
     return [p.x, p.y, p.z];
   }
 
+  // Inverse of `project` for scene points back to geographic coordinates.
+  // Ignores depth (y) — callers generally only need lat/lon for map lookups.
+  function unproject(x: number, _y: number, z: number): { lat: number; lon: number } {
+    const eastM = x / HORIZ_SCALE;
+    const northM = -z / HORIZ_SCALE;
+    return {
+      lat: lat0 + northM / mPerDegLat,
+      lon: lon0 + eastM / mPerDegLon,
+    };
+  }
+
   const stationLookup = new Map<string, Station>();
   for (const s of network.stations) stationLookup.set(s.id, s);
 
@@ -33,7 +44,7 @@ export function createProjection(network: Network) {
     return s ? projectArray(s) : null;
   }
 
-  return { project, projectArray, stationPos, stationLookup };
+  return { project, projectArray, unproject, stationPos, stationLookup };
 }
 
 export type Projection = ReturnType<typeof createProjection>;
