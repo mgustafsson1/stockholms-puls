@@ -1,5 +1,7 @@
 import { useMemo } from "react";
 import { useAppStore } from "../data/store";
+import { useDraggable } from "./useDraggable";
+import { useCollapsible, CollapseButton } from "./useCollapsible";
 
 const MOOD_COLOR: Record<string, string> = {
   calm: "#4bd582",
@@ -17,6 +19,8 @@ export function AIPanel() {
   const analysis = useAppStore((s) => s.aiAnalysis);
   const error = useAppStore((s) => s.aiError);
   const enabled = useAppStore((s) => s.aiEnabled);
+  const drag = useDraggable({ storageKey: "ai-panel", defaultAnchor: { left: 20, top: 190 } });
+  const { collapsed, toggle } = useCollapsible("ai-panel");
 
   const ageLabel = useMemo(() => {
     if (!analysis) return "—";
@@ -28,15 +32,15 @@ export function AIPanel() {
   if (!enabled) {
     return (
       <div
+        ref={drag.ref as any}
         className="panel"
         style={{
-          position: "absolute",
-          left: 20,
-          top: 160,
           maxWidth: 320,
           pointerEvents: "auto",
           opacity: 0.75,
+          ...drag.style,
         }}
+        {...drag.handlers}
       >
         <div style={{ fontSize: 10, letterSpacing: 0.18, textTransform: "uppercase", color: "#8b98ad", marginBottom: 6 }}>
           AI-analys
@@ -53,15 +57,15 @@ export function AIPanel() {
 
   return (
     <div
+      ref={drag.ref as any}
       className="panel"
       style={{
-        position: "absolute",
-        left: 20,
-        top: 160,
         maxWidth: 340,
         pointerEvents: "auto",
         borderColor: `${moodColor}40`,
+        ...drag.style,
       }}
+      {...drag.handlers}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
         <div style={{ position: "relative", width: 28, height: 28 }}>
@@ -92,15 +96,16 @@ export function AIPanel() {
             {MOOD_LABEL[mood] ?? "—"}{analysis ? ` · uppdaterad för ${ageLabel} sedan` : ""}
           </div>
         </div>
+        <CollapseButton collapsed={collapsed} onToggle={toggle} />
       </div>
 
-      {!analysis && !error && (
+      {!collapsed && !analysis && !error && (
         <div style={{ marginTop: 12, fontSize: 12, color: "#8b98ad" }}>
           Väntar på första analysen…
         </div>
       )}
 
-      {analysis && (
+      {!collapsed && analysis && (
         <>
           <div style={{ marginTop: 14, fontSize: 13.5, color: "#fff", lineHeight: 1.45, fontWeight: 500 }}>
             {analysis.summary}
@@ -139,7 +144,7 @@ export function AIPanel() {
         </>
       )}
 
-      {error && (
+      {!collapsed && error && (
         <div style={{ marginTop: 12, fontSize: 11, color: "#ff9090", fontFamily: "JetBrains Mono, monospace" }}>
           fel: {error.slice(0, 140)}
         </div>

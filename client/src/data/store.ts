@@ -1,6 +1,24 @@
 import { create } from "zustand";
 import type { AIAnalysis, Alert, CameraMode, Network, Snapshot, Train } from "./types";
 
+const HIDDEN_LINES_KEY = "sl:hidden-line-ids";
+
+function loadHiddenLineIds(): Set<string> {
+  try {
+    const raw = typeof localStorage !== "undefined" ? localStorage.getItem(HIDDEN_LINES_KEY) : null;
+    if (!raw) return new Set();
+    const arr = JSON.parse(raw);
+    if (Array.isArray(arr)) return new Set(arr.filter((x): x is string => typeof x === "string"));
+  } catch {}
+  return new Set();
+}
+
+function saveHiddenLineIds(ids: Set<string>) {
+  try {
+    localStorage.setItem(HIDDEN_LINES_KEY, JSON.stringify(Array.from(ids)));
+  } catch {}
+}
+
 interface AppState {
   network: Network | null;
   trains: Map<string, Train>;
@@ -18,8 +36,11 @@ interface AppState {
   aiAnalysis: AIAnalysis | null;
   aiError: string | null;
   aiEnabled: boolean;
+  hiddenLineIds: Set<string>;
 
   setNetwork: (n: Network) => void;
+  setHiddenLineIds: (ids: Set<string>) => void;
+  toggleLineGroup: (lineIds: string[]) => void;
   applySnapshot: (snap: Snapshot) => void;
   setConnected: (v: boolean) => void;
   setSource: (s: "simulator" | "trafiklab" | "unknown") => void;
@@ -51,8 +72,25 @@ export const useAppStore = create<AppState>((set) => ({
   aiAnalysis: null,
   aiError: null,
   aiEnabled: false,
+  hiddenLineIds: loadHiddenLineIds(),
 
   setNetwork: (n) => set({ network: n }),
+  setHiddenLineIds: (ids) => {
+    saveHiddenLineIds(ids);
+    set({ hiddenLineIds: new Set(ids) });
+  },
+  toggleLineGroup: (lineIds) => {
+    const current = useAppStore.getState().hiddenLineIds;
+    const next = new Set(current);
+    const allHidden = lineIds.every((id) => current.has(id));
+    if (allHidden) {
+      for (const id of lineIds) next.delete(id);
+    } else {
+      for (const id of lineIds) next.add(id);
+    }
+    saveHiddenLineIds(next);
+    set({ hiddenLineIds: next });
+  },
   applySnapshot: (snap) => {
     const trains = new Map<string, Train>();
     for (const t of snap.trains) trains.set(t.id, t);

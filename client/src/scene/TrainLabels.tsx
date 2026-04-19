@@ -11,11 +11,15 @@ interface Props {
 
 export function TrainLabels({ projection }: Props) {
   const trains = useAppStore((s) => s.trains);
+  const hiddenLineIds = useAppStore((s) => s.hiddenLineIds);
   const hoveredId = useAppStore((s) => s.hoveredTrainId);
   const selectedId = useAppStore((s) => s.selectedTrainId);
   const showLabels = useAppStore((s) => s.showLabels);
 
-  const trainArr = useMemo(() => Array.from(trains.values()), [trains]);
+  const trainArr = useMemo(
+    () => Array.from(trains.values()).filter((t) => !hiddenLineIds.has(t.lineId)),
+    [trains, hiddenLineIds]
+  );
 
   return (
     <group>

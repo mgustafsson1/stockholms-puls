@@ -17,7 +17,7 @@ export function StationLabels({ network, projection }: Props) {
   const labelData = useMemo(() => {
     return network.stations.map((s) => {
       const pos = projection.projectArray(s);
-      const isMajor = s.lines.length > 1 || s.depth > 25;
+      const isMajor = (s.lines?.length ?? 0) > 1 || s.depth > 25;
       return { s, pos, isMajor };
     });
   }, [network, projection]);

@@ -21,6 +21,7 @@ interface TrainState {
 
 export function Trains({ projection }: Props) {
   const trainsMap = useAppStore((s) => s.trains);
+  const hiddenLineIds = useAppStore((s) => s.hiddenLineIds);
   const setFollow = useAppStore((s) => s.setFollowTrain);
   const followId = useAppStore((s) => s.followTrainId);
   const setHovered = useAppStore((s) => s.setHoveredTrain);
@@ -32,6 +33,10 @@ export function Trains({ projection }: Props) {
   useMemo(() => {
     const current = stateRef.current;
     for (const [id, t] of trainsMap) {
+      if (hiddenLineIds.has(t.lineId)) {
+        current.delete(id);
+        continue;
+      }
       const [x, y, z] = projection.projectArray({ lat: t.lat, lon: t.lon, depth: t.depth });
       const target = new THREE.Vector3(x, y, z);
       if (!current.has(id)) {
@@ -50,7 +55,7 @@ export function Trains({ projection }: Props) {
     for (const id of current.keys()) {
       if (!trainsMap.has(id)) current.delete(id);
     }
-  }, [trainsMap, projection]);
+  }, [trainsMap, projection, hiddenLineIds]);
 
   const trainGroup = useRef<THREE.Group>(null);
   const trailGroup = useRef<THREE.Group>(null);
@@ -121,16 +126,24 @@ function TrainMesh({
     return train.color;
   }, [train.color, train.status]);
 
+  const mode = train.mode ?? "subway";
+  const sizeScale =
+    mode === "subway" ? 1 :
+    mode === "rail" ? 1.15 :
+    mode === "ferry" ? 1.0 :
+    mode === "lightrail" ? 0.8 :
+    0.65; // tram
+
   useFrame((s) => {
     if (meshRef.current) {
       meshRef.current.position.copy(state.currentPos);
       const pulse = 1 + Math.sin(s.clock.elapsedTime * 6 + train.lat * 2) * 0.18;
-      meshRef.current.scale.setScalar(followed ? pulse * 1.8 : pulse);
+      meshRef.current.scale.setScalar((followed ? pulse * 1.8 : pulse) * sizeScale);
     }
     if (haloRef.current) {
       haloRef.current.position.copy(state.currentPos);
       const pulse = 1 + Math.sin(s.clock.elapsedTime * 3 + train.lat) * 0.15;
-      haloRef.current.scale.setScalar(pulse * (followed ? 2 : 1));
+      haloRef.current.scale.setScalar(pulse * (followed ? 2 : 1) * sizeScale);
     }
     if (trailRef.current) {
       const children = trailRef.current.children as THREE.Mesh[];

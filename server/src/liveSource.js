@@ -7,13 +7,18 @@ import { dirname, resolve } from "node:path";
 const { transit_realtime } = gtfsBindings;
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const TRIP_MAP_PATH = resolve(__dirname, "../data/subway-trips.json");
+const TRIP_MAP_PATH = resolve(__dirname, "../data/trip-lines.json");
 let TRIP_TO_LINE = {};
 try {
   TRIP_TO_LINE = JSON.parse(readFileSync(TRIP_MAP_PATH, "utf8"));
-  console.log(`[live] loaded ${Object.keys(TRIP_TO_LINE).length} subway trip→line mappings`);
+  const byMode = {};
+  for (const info of Object.values(TRIP_TO_LINE)) {
+    byMode[info.mode] = (byMode[info.mode] ?? 0) + 1;
+  }
+  const summary = Object.entries(byMode).map(([m, n]) => `${m}:${n}`).join(" ");
+  console.log(`[live] loaded ${Object.keys(TRIP_TO_LINE).length} trip→line mappings (${summary})`);
 } catch {
-  console.warn("[live] subway-trips.json missing — falling back to geographic filter only");
+  console.warn("[live] trip-lines.json missing — falling back to geographic filter only");
 }
 
 const GTFS_RT_VEHICLE_URL =
@@ -192,14 +197,17 @@ export class LiveSource {
       if (!lat || !lon) continue;
 
       let forcedLineId = null;
+      let mode = null;
       if (usingTripMap) {
         const tripId = v.trip?.tripId;
         if (!tripId) continue;
-        forcedLineId = TRIP_TO_LINE[tripId];
-        if (!forcedLineId) continue;
+        const info = TRIP_TO_LINE[tripId];
+        if (!info) continue;
+        forcedLineId = info.lineId;
+        mode = info.mode;
       }
 
-      const match = this.matchToSegment(lat, lon, forcedLineId);
+      const match = this.matchToSegment(lat, lon, forcedLineId, mode);
       if (!match) continue;
 
       const id = v.vehicle?.id || v.trip?.tripId || entity.id;
@@ -214,6 +222,7 @@ export class LiveSource {
         id,
         lineId: match.lineId,
         lineGroup: match.lineGroup,
+        mode: match.mode,
         color: match.color,
         status,
         delay,
@@ -231,9 +240,9 @@ export class LiveSource {
     }
   }
 
-  matchToSegment(lat, lon, forcedLineId) {
+  matchToSegment(lat, lon, forcedLineId, mode) {
     let best = null;
-    const maxMeters = forcedLineId ? 600 : MAX_MATCH_METERS;
+    const maxMeters = mode === "ferry" ? 2500 : forcedLineId ? 600 : MAX_MATCH_METERS;
     for (const seg of this.segments) {
       if (forcedLineId && seg.lineId !== forcedLineId) continue;
       const info = projectOntoSegment(lat, lon, seg);
@@ -250,6 +259,7 @@ export class LiveSource {
     return {
       lineId: seg.lineId,
       lineGroup: seg.lineGroup,
+      mode: seg.mode,
       color: seg.color,
       direction: seg.direction,
       fromId: a.id,
@@ -273,6 +283,7 @@ export class LiveSource {
         id: t.id,
         lineId: t.lineId,
         lineGroup: t.lineGroup,
+        mode: t.mode,
         color: t.color,
         status: t.status,
         delay: t.delay,
@@ -321,6 +332,7 @@ function buildSegments(network) {
       out.push({
         lineId: line.id,
         lineGroup: line.line,
+        mode: line.mode ?? "subway",
         color: line.color,
         direction: 1,
         a, b,
@@ -328,6 +340,7 @@ function buildSegments(network) {
       out.push({
         lineId: line.id,
         lineGroup: line.line,
+        mode: line.mode ?? "subway",
         color: line.color,
         direction: -1,
         a: b, b: a,

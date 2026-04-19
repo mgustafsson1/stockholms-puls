@@ -1,4 +1,5 @@
-export type LineGroup = "red" | "green" | "blue";
+export type Mode = "subway" | "rail" | "lightrail" | "tram" | "ferry";
+export type LineGroup = string;
 
 export interface Station {
   id: string;
@@ -6,14 +7,16 @@ export interface Station {
   lat: number;
   lon: number;
   depth: number;
-  lines: LineGroup[];
+  mode?: Mode;
+  lines?: string[];
 }
 
 export interface Line {
   id: string;
   name: string;
   color: string;
-  line: LineGroup;
+  line: string;
+  mode?: Mode;
   stations: string[];
 }
 
@@ -26,7 +29,8 @@ export interface Network {
 export interface Train {
   id: string;
   lineId: string;
-  lineGroup: LineGroup;
+  lineGroup: string;
+  mode?: Mode;
   color: string;
   status: "ok" | "delayed" | "stopped";
   delay: number;

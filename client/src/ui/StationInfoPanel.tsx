@@ -1,11 +1,21 @@
 import { useEffect, useMemo, useState } from "react";
 import { useAppStore } from "../data/store";
 import { computeStationBoard, formatEta, type BoardEntry } from "../data/stationBoard";
+import { useDraggable } from "./useDraggable";
+import { useCollapsible, CollapseButton } from "./useCollapsible";
 
 const LINE_HEX: Record<string, string> = {
   red: "#ff3d4a",
   green: "#4bd582",
   blue: "#39a7ff",
+};
+
+const MODE_BADGE: Record<string, { color: string; label: string }> = {
+  subway: { color: "#ffffff", label: "T-BANA" },
+  rail: { color: "#ff7a1f", label: "PENDEL" },
+  lightrail: { color: "#b084ff", label: "SPÅRVÄG" },
+  tram: { color: "#f4c430", label: "SPÅRVAGN" },
+  ferry: { color: "#24d4d4", label: "BÅT" },
 };
 
 const STATUS_COLOR: Record<string, string> = {
@@ -19,6 +29,8 @@ export function StationInfoPanel() {
   const network = useAppStore((s) => s.network);
   const trains = useAppStore((s) => s.trains);
   const setSelected = useAppStore((s) => s.setSelectedStation);
+  const drag = useDraggable({ storageKey: "station-panel", defaultAnchor: { right: 20, top: 160 } });
+  const { collapsed, toggle } = useCollapsible("station-panel");
 
   const station = useMemo(() => {
     if (!network || !selectedStationId) return null;
@@ -40,17 +52,16 @@ export function StationInfoPanel() {
   if (!station || !network) return null;
 
   const depthLabel = station.depth > 0 ? `${station.depth} m under mark` : "marknivå";
-  const linesAtStation = station.lines.map((l) => l);
+  const linesAtStation = station.lines ?? [];
+  const modeBadge = linesAtStation.length === 0 ? MODE_BADGE[station.mode ?? "subway"] : null;
 
   const upcoming = board.slice(0, 10);
 
   return (
     <div
+      ref={drag.ref as any}
       className="panel"
       style={{
-        position: "absolute",
-        right: 20,
-        top: 160,
         minWidth: 320,
         maxWidth: 360,
         maxHeight: "calc(100vh - 200px)",
@@ -58,7 +69,9 @@ export function StationInfoPanel() {
         zIndex: 8,
         display: "flex",
         flexDirection: "column",
+        ...drag.style,
       }}
+      {...drag.handlers}
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10 }}>
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -69,7 +82,7 @@ export function StationInfoPanel() {
               <span
                 key={lg}
                 style={{
-                  background: LINE_HEX[lg],
+                  background: LINE_HEX[lg] ?? "#888",
                   color: "#04060c",
                   padding: "2px 7px",
                   borderRadius: 4,
@@ -78,29 +91,46 @@ export function StationInfoPanel() {
                   letterSpacing: 0.04,
                 }}
               >
-                {lg === "red" ? "RÖD" : lg === "green" ? "GRÖN" : "BLÅ"}
+                {lg === "red" ? "RÖD" : lg === "green" ? "GRÖN" : lg === "blue" ? "BLÅ" : lg.toUpperCase()}
               </span>
             ))}
+            {modeBadge && (
+              <span
+                style={{
+                  background: modeBadge.color,
+                  color: "#04060c",
+                  padding: "2px 7px",
+                  borderRadius: 4,
+                  fontSize: 10,
+                  fontWeight: 700,
+                  letterSpacing: 0.04,
+                }}
+              >{modeBadge.label}</span>
+            )}
           </div>
           <div style={{ marginTop: 8, fontSize: 11, color: "#8b98ad" }}>
             {depthLabel} · {station.lat.toFixed(4)}, {station.lon.toFixed(4)}
           </div>
         </div>
-        <button
-          onClick={() => setSelected(null)}
-          style={{
-            background: "transparent",
-            border: "1px solid rgba(255,255,255,0.14)",
-            color: "#8b98ad",
-            width: 26, height: 26, borderRadius: 6,
-            cursor: "pointer",
-            fontSize: 14,
-          }}
-          aria-label="Stäng"
-        >×</button>
+        <div style={{ display: "flex", gap: 4 }}>
+          <CollapseButton collapsed={collapsed} onToggle={toggle} />
+          <button
+            onClick={() => setSelected(null)}
+            data-nodrag
+            style={{
+              background: "transparent",
+              border: "1px solid rgba(255,255,255,0.14)",
+              color: "#8b98ad",
+              width: 26, height: 26, borderRadius: 6,
+              cursor: "pointer",
+              fontSize: 14,
+            }}
+            aria-label="Stäng"
+          >×</button>
+        </div>
       </div>
 
-      <div style={{ marginTop: 14, paddingTop: 12, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+      {!collapsed && <div style={{ marginTop: 14, paddingTop: 12, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
         <div style={{ fontSize: 10, color: "#8b98ad", letterSpacing: 0.18, textTransform: "uppercase", marginBottom: 10 }}>
           Ankomster
         </div>
@@ -124,7 +154,7 @@ export function StationInfoPanel() {
             ))}
           </div>
         )}
-      </div>
+      </div>}
     </div>
   );
 }

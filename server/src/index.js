@@ -9,6 +9,7 @@ import { dirname, resolve } from "node:path";
 import { Simulator } from "./simulator.js";
 import { LiveSource, hasTrafiklabKey } from "./liveSource.js";
 import { AIAnalyst } from "./aiAnalyst.js";
+import { TrendRecorder } from "./trendRecorder.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const NETWORK_PATH = resolve(__dirname, "../data/network.json");
@@ -59,6 +60,16 @@ const aiAnalyst = new AIAnalyst({
   intervalMs: Number(process.env.AI_INTERVAL_MS ?? 90_000),
 });
 
+const trendRecorder = new TrendRecorder({
+  getSnapshot: () => source.snapshot(),
+  intervalMs: Number(process.env.TREND_INTERVAL_MS ?? 30_000),
+  maxSamples: 120,
+});
+
+app.get("/api/trends", (_req, res) => {
+  res.json(trendRecorder.snapshot());
+});
+
 wss.on("connection", (ws) => {
   ws.send(JSON.stringify({ type: "hello", source: hasTrafiklabKey() ? "trafiklab" : "simulator", aiEnabled: !!aiAnalyst.apiKey }));
   ws.send(JSON.stringify({ type: "snapshot", data: source.snapshot() }));
@@ -91,5 +102,6 @@ server.listen(PORT, () => {
 process.on("SIGINT", () => {
   source.stop();
   aiAnalyst.stop();
+  trendRecorder.stop();
   server.close(() => process.exit(0));
 });

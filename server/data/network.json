@@ -1,106 +1,2571 @@
 {
-  "origin": { "lat": 59.3308, "lon": 18.0589, "label": "T-Centralen" },
+  "origin": {
+    "lat": 59.3308,
+    "lon": 18.0589,
+    "label": "T-Centralen"
+  },
   "stations": [
-    { "id": "tcentralen", "name": "T-Centralen", "lat": 59.3308, "lon": 18.0589, "depth": 28, "lines": ["red", "green", "blue"] },
-    { "id": "slussen", "name": "Slussen", "lat": 59.3198, "lon": 18.0720, "depth": 10, "lines": ["red", "green"] },
-    { "id": "gamlastan", "name": "Gamla stan", "lat": 59.3238, "lon": 18.0680, "depth": 0, "lines": ["red", "green"] },
-    { "id": "kungstradgarden", "name": "Kungsträdgården", "lat": 59.3308, "lon": 18.0731, "depth": 33, "lines": ["blue"] },
-    { "id": "radhuset", "name": "Rådhuset", "lat": 59.3295, "lon": 18.0546, "depth": 28, "lines": ["blue"] },
-    { "id": "fridhemsplan", "name": "Fridhemsplan", "lat": 59.3331, "lon": 18.0367, "depth": 25, "lines": ["green", "blue"] },
-    { "id": "stadshagen", "name": "Stadshagen", "lat": 59.3380, "lon": 18.0288, "depth": 20, "lines": ["blue"] },
-    { "id": "vastra_skogen", "name": "Västra skogen", "lat": 59.3473, "lon": 18.0079, "depth": 34, "lines": ["blue"] },
-    { "id": "huvudsta", "name": "Huvudsta", "lat": 59.3475, "lon": 17.9902, "depth": 18, "lines": ["blue"] },
-    { "id": "solna_strand", "name": "Solna strand", "lat": 59.3530, "lon": 17.9761, "depth": 10, "lines": ["blue"] },
-    { "id": "sundbyberg_c", "name": "Sundbybergs centrum", "lat": 59.3620, "lon": 17.9708, "depth": 15, "lines": ["blue"] },
-    { "id": "duvbo", "name": "Duvbo", "lat": 59.3665, "lon": 17.9638, "depth": 10, "lines": ["blue"] },
-    { "id": "rissne", "name": "Rissne", "lat": 59.3736, "lon": 17.9516, "depth": 8, "lines": ["blue"] },
-    { "id": "rinkeby", "name": "Rinkeby", "lat": 59.3882, "lon": 17.9263, "depth": 12, "lines": ["blue"] },
-    { "id": "tensta", "name": "Tensta", "lat": 59.3940, "lon": 17.9033, "depth": 8, "lines": ["blue"] },
-    { "id": "hjulsta", "name": "Hjulsta", "lat": 59.3972, "lon": 17.8965, "depth": 5, "lines": ["blue"] },
-    { "id": "solna_centrum", "name": "Solna centrum", "lat": 59.3603, "lon": 17.9986, "depth": 28, "lines": ["blue"] },
-    { "id": "nackrosen", "name": "Näckrosen", "lat": 59.3672, "lon": 18.0050, "depth": 22, "lines": ["blue"] },
-    { "id": "hallonbergen", "name": "Hallonbergen", "lat": 59.3799, "lon": 17.9827, "depth": 18, "lines": ["blue"] },
-    { "id": "kista", "name": "Kista", "lat": 59.4031, "lon": 17.9435, "depth": 15, "lines": ["blue"] },
-    { "id": "husby", "name": "Husby", "lat": 59.4074, "lon": 17.9142, "depth": 12, "lines": ["blue"] },
-    { "id": "akalla", "name": "Akalla", "lat": 59.4146, "lon": 17.9112, "depth": 10, "lines": ["blue"] },
-    { "id": "ostermalmstorg", "name": "Östermalmstorg", "lat": 59.3371, "lon": 18.0777, "depth": 30, "lines": ["red"] },
-    { "id": "stadion", "name": "Stadion", "lat": 59.3446, "lon": 18.0791, "depth": 25, "lines": ["red"] },
-    { "id": "tekniska", "name": "Tekniska högskolan", "lat": 59.3458, "lon": 18.0705, "depth": 20, "lines": ["red"] },
-    { "id": "universitetet", "name": "Universitetet", "lat": 59.3655, "lon": 18.0557, "depth": 10, "lines": ["red"] },
-    { "id": "bergshamra", "name": "Bergshamra", "lat": 59.3805, "lon": 18.0415, "depth": 5, "lines": ["red"] },
-    { "id": "danderyd", "name": "Danderyds sjukhus", "lat": 59.3881, "lon": 18.0331, "depth": 0, "lines": ["red"] },
-    { "id": "morby", "name": "Mörby centrum", "lat": 59.3963, "lon": 18.0329, "depth": 12, "lines": ["red"] },
-    { "id": "karlaplan", "name": "Karlaplan", "lat": 59.3374, "lon": 18.0953, "depth": 28, "lines": ["red"] },
-    { "id": "gardet", "name": "Gärdet", "lat": 59.3460, "lon": 18.0967, "depth": 25, "lines": ["red"] },
-    { "id": "ropsten", "name": "Ropsten", "lat": 59.3573, "lon": 18.1031, "depth": 0, "lines": ["red"] },
-    { "id": "mariatorget", "name": "Mariatorget", "lat": 59.3177, "lon": 18.0643, "depth": 22, "lines": ["red"] },
-    { "id": "zinkensdamm", "name": "Zinkensdamm", "lat": 59.3166, "lon": 18.0538, "depth": 18, "lines": ["red"] },
-    { "id": "hornstull", "name": "Hornstull", "lat": 59.3158, "lon": 18.0380, "depth": 12, "lines": ["red"] },
-    { "id": "liljeholmen", "name": "Liljeholmen", "lat": 59.3108, "lon": 18.0231, "depth": 8, "lines": ["red"] },
-    { "id": "midsommarkransen", "name": "Midsommarkransen", "lat": 59.3015, "lon": 18.0133, "depth": 0, "lines": ["red"] },
-    { "id": "telefonplan", "name": "Telefonplan", "lat": 59.2971, "lon": 18.0144, "depth": 0, "lines": ["red"] },
-    { "id": "hagerstensasen", "name": "Hägerstensåsen", "lat": 59.2946, "lon": 18.0066, "depth": 0, "lines": ["red"] },
-    { "id": "vastertorp", "name": "Västertorp", "lat": 59.2938, "lon": 17.9973, "depth": 0, "lines": ["red"] },
-    { "id": "fruangen", "name": "Fruängen", "lat": 59.2872, "lon": 17.9837, "depth": 0, "lines": ["red"] },
-    { "id": "aspudden", "name": "Aspudden", "lat": 59.3082, "lon": 18.0146, "depth": 0, "lines": ["red"] },
-    { "id": "ornsberg", "name": "Örnsberg", "lat": 59.2995, "lon": 18.0044, "depth": 0, "lines": ["red"] },
-    { "id": "axelsberg", "name": "Axelsberg", "lat": 59.2961, "lon": 17.9952, "depth": 0, "lines": ["red"] },
-    { "id": "malarhojden", "name": "Mälarhöjden", "lat": 59.2918, "lon": 17.9877, "depth": 0, "lines": ["red"] },
-    { "id": "bredang", "name": "Bredäng", "lat": 59.2933, "lon": 17.9679, "depth": 0, "lines": ["red"] },
-    { "id": "satra", "name": "Sätra", "lat": 59.2943, "lon": 17.9574, "depth": 0, "lines": ["red"] },
-    { "id": "skarholmen", "name": "Skärholmen", "lat": 59.2786, "lon": 17.9079, "depth": 0, "lines": ["red"] },
-    { "id": "varberg", "name": "Vårberg", "lat": 59.2716, "lon": 17.8897, "depth": 0, "lines": ["red"] },
-    { "id": "varby_gard", "name": "Vårby gård", "lat": 59.2638, "lon": 17.8777, "depth": 0, "lines": ["red"] },
-    { "id": "masmo", "name": "Masmo", "lat": 59.2582, "lon": 17.8585, "depth": 0, "lines": ["red"] },
-    { "id": "fittja", "name": "Fittja", "lat": 59.2470, "lon": 17.8594, "depth": 0, "lines": ["red"] },
-    { "id": "alby", "name": "Alby", "lat": 59.2380, "lon": 17.8570, "depth": 0, "lines": ["red"] },
-    { "id": "hallunda", "name": "Hallunda", "lat": 59.2361, "lon": 17.8226, "depth": 0, "lines": ["red"] },
-    { "id": "norsborg", "name": "Norsborg", "lat": 59.2442, "lon": 17.8067, "depth": 0, "lines": ["red"] },
-    { "id": "hotorget", "name": "Hötorget", "lat": 59.3348, "lon": 18.0628, "depth": 14, "lines": ["green"] },
-    { "id": "radmansgatan", "name": "Rådmansgatan", "lat": 59.3411, "lon": 18.0538, "depth": 18, "lines": ["green"] },
-    { "id": "odenplan", "name": "Odenplan", "lat": 59.3430, "lon": 18.0479, "depth": 20, "lines": ["green"] },
-    { "id": "sterikplan", "name": "S:t Eriksplan", "lat": 59.3395, "lon": 18.0350, "depth": 16, "lines": ["green"] },
-    { "id": "thorildsplan", "name": "Thorildsplan", "lat": 59.3323, "lon": 18.0238, "depth": 0, "lines": ["green"] },
-    { "id": "kristineberg", "name": "Kristineberg", "lat": 59.3335, "lon": 18.0098, "depth": 0, "lines": ["green"] },
-    { "id": "alvik", "name": "Alvik", "lat": 59.3344, "lon": 17.9820, "depth": 0, "lines": ["green"] },
-    { "id": "stora_mossen", "name": "Stora mossen", "lat": 59.3350, "lon": 17.9697, "depth": 0, "lines": ["green"] },
-    { "id": "abrahamsberg", "name": "Abrahamsberg", "lat": 59.3356, "lon": 17.9536, "depth": 0, "lines": ["green"] },
-    { "id": "brommaplan", "name": "Brommaplan", "lat": 59.3413, "lon": 17.9396, "depth": 0, "lines": ["green"] },
-    { "id": "akeshov", "name": "Åkeshov", "lat": 59.3427, "lon": 17.9328, "depth": 0, "lines": ["green"] },
-    { "id": "islandstorget", "name": "Islandstorget", "lat": 59.3485, "lon": 17.9120, "depth": 0, "lines": ["green"] },
-    { "id": "angbyplan", "name": "Ängbyplan", "lat": 59.3515, "lon": 17.9018, "depth": 0, "lines": ["green"] },
-    { "id": "blackeberg", "name": "Blackeberg", "lat": 59.3625, "lon": 17.9013, "depth": 0, "lines": ["green"] },
-    { "id": "racksta", "name": "Råcksta", "lat": 59.3625, "lon": 17.8823, "depth": 0, "lines": ["green"] },
-    { "id": "vallingby", "name": "Vällingby", "lat": 59.3626, "lon": 17.8714, "depth": 0, "lines": ["green"] },
-    { "id": "johannelund", "name": "Johannelund", "lat": 59.3685, "lon": 17.8623, "depth": 0, "lines": ["green"] },
-    { "id": "hasselby_gard", "name": "Hässelby gård", "lat": 59.3682, "lon": 17.8392, "depth": 0, "lines": ["green"] },
-    { "id": "hasselby_strand", "name": "Hässelby strand", "lat": 59.3620, "lon": 17.8330, "depth": 0, "lines": ["green"] },
-    { "id": "medborgarplatsen", "name": "Medborgarplatsen", "lat": 59.3143, "lon": 18.0721, "depth": 22, "lines": ["green"] },
-    { "id": "skanstull", "name": "Skanstull", "lat": 59.3099, "lon": 18.0778, "depth": 8, "lines": ["green"] },
-    { "id": "gullmarsplan", "name": "Gullmarsplan", "lat": 59.2991, "lon": 18.0807, "depth": 5, "lines": ["green"] },
-    { "id": "skarmarbrink", "name": "Skärmarbrink", "lat": 59.2945, "lon": 18.0869, "depth": 0, "lines": ["green"] },
-    { "id": "hammarbyhojden", "name": "Hammarbyhöjden", "lat": 59.2896, "lon": 18.0935, "depth": 0, "lines": ["green"] },
-    { "id": "bjorkhagen", "name": "Björkhagen", "lat": 59.2845, "lon": 18.1017, "depth": 0, "lines": ["green"] },
-    { "id": "karrtorp", "name": "Kärrtorp", "lat": 59.2838, "lon": 18.1155, "depth": 0, "lines": ["green"] },
-    { "id": "bagarmossen", "name": "Bagarmossen", "lat": 59.2759, "lon": 18.1305, "depth": 0, "lines": ["green"] },
-    { "id": "skarpnack", "name": "Skarpnäck", "lat": 59.2678, "lon": 18.1300, "depth": 0, "lines": ["green"] },
-    { "id": "blasut", "name": "Blåsut", "lat": 59.2940, "lon": 18.0991, "depth": 0, "lines": ["green"] },
-    { "id": "sandsborg", "name": "Sandsborg", "lat": 59.2864, "lon": 18.0990, "depth": 0, "lines": ["green"] },
-    { "id": "skogskyrkogarden", "name": "Skogskyrkogården", "lat": 59.2816, "lon": 18.1001, "depth": 0, "lines": ["green"] },
-    { "id": "tallkrogen", "name": "Tallkrogen", "lat": 59.2761, "lon": 18.0977, "depth": 0, "lines": ["green"] },
-    { "id": "gubbangen", "name": "Gubbängen", "lat": 59.2721, "lon": 18.0854, "depth": 0, "lines": ["green"] },
-    { "id": "hokarangen", "name": "Hökarängen", "lat": 59.2650, "lon": 18.0810, "depth": 0, "lines": ["green"] },
-    { "id": "farsta", "name": "Farsta", "lat": 59.2432, "lon": 18.0916, "depth": 0, "lines": ["green"] },
-    { "id": "farsta_strand", "name": "Farsta strand", "lat": 59.2384, "lon": 18.0979, "depth": 0, "lines": ["green"] },
-    { "id": "globen", "name": "Globen", "lat": 59.2937, "lon": 18.0818, "depth": 0, "lines": ["green"] },
-    { "id": "enskede_gard", "name": "Enskede gård", "lat": 59.2872, "lon": 18.0755, "depth": 0, "lines": ["green"] },
-    { "id": "sockenplan", "name": "Sockenplan", "lat": 59.2876, "lon": 18.0654, "depth": 0, "lines": ["green"] },
-    { "id": "svedmyra", "name": "Svedmyra", "lat": 59.2836, "lon": 18.0579, "depth": 0, "lines": ["green"] },
-    { "id": "stureby", "name": "Stureby", "lat": 59.2771, "lon": 18.0485, "depth": 0, "lines": ["green"] },
-    { "id": "bandhagen", "name": "Bandhagen", "lat": 59.2727, "lon": 18.0344, "depth": 0, "lines": ["green"] },
-    { "id": "hogdalen", "name": "Högdalen", "lat": 59.2642, "lon": 18.0420, "depth": 0, "lines": ["green"] },
-    { "id": "ragsved", "name": "Rågsved", "lat": 59.2567, "lon": 18.0410, "depth": 0, "lines": ["green"] },
-    { "id": "hagsatra", "name": "Hagsätra", "lat": 59.2590, "lon": 18.0273, "depth": 0, "lines": ["green"] }
+    {
+      "id": "tcentralen",
+      "name": "T-Centralen",
+      "lat": 59.3308,
+      "lon": 18.0589,
+      "depth": 28,
+      "lines": [
+        "red",
+        "green",
+        "blue"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "slussen",
+      "name": "Slussen",
+      "lat": 59.3198,
+      "lon": 18.072,
+      "depth": 10,
+      "lines": [
+        "red",
+        "green"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "gamlastan",
+      "name": "Gamla stan",
+      "lat": 59.3238,
+      "lon": 18.068,
+      "depth": 0,
+      "lines": [
+        "red",
+        "green"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "kungstradgarden",
+      "name": "Kungsträdgården",
+      "lat": 59.3308,
+      "lon": 18.0731,
+      "depth": 33,
+      "lines": [
+        "blue"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "radhuset",
+      "name": "Rådhuset",
+      "lat": 59.3295,
+      "lon": 18.0546,
+      "depth": 28,
+      "lines": [
+        "blue"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "fridhemsplan",
+      "name": "Fridhemsplan",
+      "lat": 59.3331,
+      "lon": 18.0367,
+      "depth": 25,
+      "lines": [
+        "green",
+        "blue"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "stadshagen",
+      "name": "Stadshagen",
+      "lat": 59.338,
+      "lon": 18.0288,
+      "depth": 20,
+      "lines": [
+        "blue"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "vastra_skogen",
+      "name": "Västra skogen",
+      "lat": 59.3473,
+      "lon": 18.0079,
+      "depth": 34,
+      "lines": [
+        "blue"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "huvudsta",
+      "name": "Huvudsta",
+      "lat": 59.3475,
+      "lon": 17.9902,
+      "depth": 18,
+      "lines": [
+        "blue"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "solna_strand",
+      "name": "Solna strand",
+      "lat": 59.353,
+      "lon": 17.9761,
+      "depth": 10,
+      "lines": [
+        "blue"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "sundbyberg_c",
+      "name": "Sundbybergs centrum",
+      "lat": 59.362,
+      "lon": 17.9708,
+      "depth": 15,
+      "lines": [
+        "blue"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "duvbo",
+      "name": "Duvbo",
+      "lat": 59.3665,
+      "lon": 17.9638,
+      "depth": 10,
+      "lines": [
+        "blue"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "rissne",
+      "name": "Rissne",
+      "lat": 59.3736,
+      "lon": 17.9516,
+      "depth": 8,
+      "lines": [
+        "blue"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "rinkeby",
+      "name": "Rinkeby",
+      "lat": 59.3882,
+      "lon": 17.9263,
+      "depth": 12,
+      "lines": [
+        "blue"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "tensta",
+      "name": "Tensta",
+      "lat": 59.394,
+      "lon": 17.9033,
+      "depth": 8,
+      "lines": [
+        "blue"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "hjulsta",
+      "name": "Hjulsta",
+      "lat": 59.3972,
+      "lon": 17.8965,
+      "depth": 5,
+      "lines": [
+        "blue"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "solna_centrum",
+      "name": "Solna centrum",
+      "lat": 59.3603,
+      "lon": 17.9986,
+      "depth": 28,
+      "lines": [
+        "blue"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "nackrosen",
+      "name": "Näckrosen",
+      "lat": 59.3672,
+      "lon": 18.005,
+      "depth": 22,
+      "lines": [
+        "blue"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "hallonbergen",
+      "name": "Hallonbergen",
+      "lat": 59.3799,
+      "lon": 17.9827,
+      "depth": 18,
+      "lines": [
+        "blue"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "kista",
+      "name": "Kista",
+      "lat": 59.4031,
+      "lon": 17.9435,
+      "depth": 15,
+      "lines": [
+        "blue"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "husby",
+      "name": "Husby",
+      "lat": 59.4074,
+      "lon": 17.9142,
+      "depth": 12,
+      "lines": [
+        "blue"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "akalla",
+      "name": "Akalla",
+      "lat": 59.4146,
+      "lon": 17.9112,
+      "depth": 10,
+      "lines": [
+        "blue"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "ostermalmstorg",
+      "name": "Östermalmstorg",
+      "lat": 59.3371,
+      "lon": 18.0777,
+      "depth": 30,
+      "lines": [
+        "red"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "stadion",
+      "name": "Stadion",
+      "lat": 59.3446,
+      "lon": 18.0791,
+      "depth": 25,
+      "lines": [
+        "red"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "tekniska",
+      "name": "Tekniska högskolan",
+      "lat": 59.3458,
+      "lon": 18.0705,
+      "depth": 20,
+      "lines": [
+        "red"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "universitetet",
+      "name": "Universitetet",
+      "lat": 59.3655,
+      "lon": 18.0557,
+      "depth": 10,
+      "lines": [
+        "red"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "bergshamra",
+      "name": "Bergshamra",
+      "lat": 59.3805,
+      "lon": 18.0415,
+      "depth": 5,
+      "lines": [
+        "red"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "danderyd",
+      "name": "Danderyds sjukhus",
+      "lat": 59.3881,
+      "lon": 18.0331,
+      "depth": 0,
+      "lines": [
+        "red"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "morby",
+      "name": "Mörby centrum",
+      "lat": 59.3963,
+      "lon": 18.0329,
+      "depth": 12,
+      "lines": [
+        "red"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "karlaplan",
+      "name": "Karlaplan",
+      "lat": 59.3374,
+      "lon": 18.0953,
+      "depth": 28,
+      "lines": [
+        "red"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "gardet",
+      "name": "Gärdet",
+      "lat": 59.346,
+      "lon": 18.0967,
+      "depth": 25,
+      "lines": [
+        "red"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "ropsten",
+      "name": "Ropsten",
+      "lat": 59.3573,
+      "lon": 18.1031,
+      "depth": 0,
+      "lines": [
+        "red"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "mariatorget",
+      "name": "Mariatorget",
+      "lat": 59.3177,
+      "lon": 18.0643,
+      "depth": 22,
+      "lines": [
+        "red"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "zinkensdamm",
+      "name": "Zinkensdamm",
+      "lat": 59.3166,
+      "lon": 18.0538,
+      "depth": 18,
+      "lines": [
+        "red"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "hornstull",
+      "name": "Hornstull",
+      "lat": 59.3158,
+      "lon": 18.038,
+      "depth": 12,
+      "lines": [
+        "red"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "liljeholmen",
+      "name": "Liljeholmen",
+      "lat": 59.3108,
+      "lon": 18.0231,
+      "depth": 8,
+      "lines": [
+        "red"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "midsommarkransen",
+      "name": "Midsommarkransen",
+      "lat": 59.3015,
+      "lon": 18.0133,
+      "depth": 0,
+      "lines": [
+        "red"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "telefonplan",
+      "name": "Telefonplan",
+      "lat": 59.2971,
+      "lon": 18.0144,
+      "depth": 0,
+      "lines": [
+        "red"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "hagerstensasen",
+      "name": "Hägerstensåsen",
+      "lat": 59.2946,
+      "lon": 18.0066,
+      "depth": 0,
+      "lines": [
+        "red"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "vastertorp",
+      "name": "Västertorp",
+      "lat": 59.2938,
+      "lon": 17.9973,
+      "depth": 0,
+      "lines": [
+        "red"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "fruangen",
+      "name": "Fruängen",
+      "lat": 59.2872,
+      "lon": 17.9837,
+      "depth": 0,
+      "lines": [
+        "red"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "aspudden",
+      "name": "Aspudden",
+      "lat": 59.3082,
+      "lon": 18.0146,
+      "depth": 0,
+      "lines": [
+        "red"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "ornsberg",
+      "name": "Örnsberg",
+      "lat": 59.2995,
+      "lon": 18.0044,
+      "depth": 0,
+      "lines": [
+        "red"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "axelsberg",
+      "name": "Axelsberg",
+      "lat": 59.2961,
+      "lon": 17.9952,
+      "depth": 0,
+      "lines": [
+        "red"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "malarhojden",
+      "name": "Mälarhöjden",
+      "lat": 59.2918,
+      "lon": 17.9877,
+      "depth": 0,
+      "lines": [
+        "red"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "bredang",
+      "name": "Bredäng",
+      "lat": 59.2933,
+      "lon": 17.9679,
+      "depth": 0,
+      "lines": [
+        "red"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "satra",
+      "name": "Sätra",
+      "lat": 59.2943,
+      "lon": 17.9574,
+      "depth": 0,
+      "lines": [
+        "red"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "skarholmen",
+      "name": "Skärholmen",
+      "lat": 59.2786,
+      "lon": 17.9079,
+      "depth": 0,
+      "lines": [
+        "red"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "varberg",
+      "name": "Vårberg",
+      "lat": 59.2716,
+      "lon": 17.8897,
+      "depth": 0,
+      "lines": [
+        "red"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "varby_gard",
+      "name": "Vårby gård",
+      "lat": 59.2638,
+      "lon": 17.8777,
+      "depth": 0,
+      "lines": [
+        "red"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "masmo",
+      "name": "Masmo",
+      "lat": 59.2582,
+      "lon": 17.8585,
+      "depth": 0,
+      "lines": [
+        "red"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "fittja",
+      "name": "Fittja",
+      "lat": 59.247,
+      "lon": 17.8594,
+      "depth": 0,
+      "lines": [
+        "red"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "alby",
+      "name": "Alby",
+      "lat": 59.238,
+      "lon": 17.857,
+      "depth": 0,
+      "lines": [
+        "red"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "hallunda",
+      "name": "Hallunda",
+      "lat": 59.2361,
+      "lon": 17.8226,
+      "depth": 0,
+      "lines": [
+        "red"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "norsborg",
+      "name": "Norsborg",
+      "lat": 59.2442,
+      "lon": 17.8067,
+      "depth": 0,
+      "lines": [
+        "red"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "hotorget",
+      "name": "Hötorget",
+      "lat": 59.3348,
+      "lon": 18.0628,
+      "depth": 14,
+      "lines": [
+        "green"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "radmansgatan",
+      "name": "Rådmansgatan",
+      "lat": 59.3411,
+      "lon": 18.0538,
+      "depth": 18,
+      "lines": [
+        "green"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "odenplan",
+      "name": "Odenplan",
+      "lat": 59.343,
+      "lon": 18.0479,
+      "depth": 20,
+      "lines": [
+        "green"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "sterikplan",
+      "name": "S:t Eriksplan",
+      "lat": 59.3395,
+      "lon": 18.035,
+      "depth": 16,
+      "lines": [
+        "green"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "thorildsplan",
+      "name": "Thorildsplan",
+      "lat": 59.3323,
+      "lon": 18.0238,
+      "depth": 0,
+      "lines": [
+        "green"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "kristineberg",
+      "name": "Kristineberg",
+      "lat": 59.3335,
+      "lon": 18.0098,
+      "depth": 0,
+      "lines": [
+        "green"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "alvik",
+      "name": "Alvik",
+      "lat": 59.3344,
+      "lon": 17.982,
+      "depth": 0,
+      "lines": [
+        "green"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "stora_mossen",
+      "name": "Stora mossen",
+      "lat": 59.335,
+      "lon": 17.9697,
+      "depth": 0,
+      "lines": [
+        "green"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "abrahamsberg",
+      "name": "Abrahamsberg",
+      "lat": 59.3356,
+      "lon": 17.9536,
+      "depth": 0,
+      "lines": [
+        "green"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "brommaplan",
+      "name": "Brommaplan",
+      "lat": 59.3413,
+      "lon": 17.9396,
+      "depth": 0,
+      "lines": [
+        "green"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "akeshov",
+      "name": "Åkeshov",
+      "lat": 59.3427,
+      "lon": 17.9328,
+      "depth": 0,
+      "lines": [
+        "green"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "islandstorget",
+      "name": "Islandstorget",
+      "lat": 59.3485,
+      "lon": 17.912,
+      "depth": 0,
+      "lines": [
+        "green"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "angbyplan",
+      "name": "Ängbyplan",
+      "lat": 59.3515,
+      "lon": 17.9018,
+      "depth": 0,
+      "lines": [
+        "green"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "blackeberg",
+      "name": "Blackeberg",
+      "lat": 59.3625,
+      "lon": 17.9013,
+      "depth": 0,
+      "lines": [
+        "green"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "racksta",
+      "name": "Råcksta",
+      "lat": 59.3625,
+      "lon": 17.8823,
+      "depth": 0,
+      "lines": [
+        "green"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "vallingby",
+      "name": "Vällingby",
+      "lat": 59.3626,
+      "lon": 17.8714,
+      "depth": 0,
+      "lines": [
+        "green"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "johannelund",
+      "name": "Johannelund",
+      "lat": 59.3685,
+      "lon": 17.8623,
+      "depth": 0,
+      "lines": [
+        "green"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "hasselby_gard",
+      "name": "Hässelby gård",
+      "lat": 59.3682,
+      "lon": 17.8392,
+      "depth": 0,
+      "lines": [
+        "green"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "hasselby_strand",
+      "name": "Hässelby strand",
+      "lat": 59.362,
+      "lon": 17.833,
+      "depth": 0,
+      "lines": [
+        "green"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "medborgarplatsen",
+      "name": "Medborgarplatsen",
+      "lat": 59.3143,
+      "lon": 18.0721,
+      "depth": 22,
+      "lines": [
+        "green"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "skanstull",
+      "name": "Skanstull",
+      "lat": 59.3099,
+      "lon": 18.0778,
+      "depth": 8,
+      "lines": [
+        "green"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "gullmarsplan",
+      "name": "Gullmarsplan",
+      "lat": 59.2991,
+      "lon": 18.0807,
+      "depth": 5,
+      "lines": [
+        "green"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "skarmarbrink",
+      "name": "Skärmarbrink",
+      "lat": 59.2945,
+      "lon": 18.0869,
+      "depth": 0,
+      "lines": [
+        "green"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "hammarbyhojden",
+      "name": "Hammarbyhöjden",
+      "lat": 59.2896,
+      "lon": 18.0935,
+      "depth": 0,
+      "lines": [
+        "green"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "bjorkhagen",
+      "name": "Björkhagen",
+      "lat": 59.2845,
+      "lon": 18.1017,
+      "depth": 0,
+      "lines": [
+        "green"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "karrtorp",
+      "name": "Kärrtorp",
+      "lat": 59.2838,
+      "lon": 18.1155,
+      "depth": 0,
+      "lines": [
+        "green"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "bagarmossen",
+      "name": "Bagarmossen",
+      "lat": 59.2759,
+      "lon": 18.1305,
+      "depth": 0,
+      "lines": [
+        "green"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "skarpnack",
+      "name": "Skarpnäck",
+      "lat": 59.2678,
+      "lon": 18.13,
+      "depth": 0,
+      "lines": [
+        "green"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "blasut",
+      "name": "Blåsut",
+      "lat": 59.294,
+      "lon": 18.0991,
+      "depth": 0,
+      "lines": [
+        "green"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "sandsborg",
+      "name": "Sandsborg",
+      "lat": 59.2864,
+      "lon": 18.099,
+      "depth": 0,
+      "lines": [
+        "green"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "skogskyrkogarden",
+      "name": "Skogskyrkogården",
+      "lat": 59.2816,
+      "lon": 18.1001,
+      "depth": 0,
+      "lines": [
+        "green"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "tallkrogen",
+      "name": "Tallkrogen",
+      "lat": 59.2761,
+      "lon": 18.0977,
+      "depth": 0,
+      "lines": [
+        "green"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "gubbangen",
+      "name": "Gubbängen",
+      "lat": 59.2721,
+      "lon": 18.0854,
+      "depth": 0,
+      "lines": [
+        "green"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "hokarangen",
+      "name": "Hökarängen",
+      "lat": 59.265,
+      "lon": 18.081,
+      "depth": 0,
+      "lines": [
+        "green"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "farsta",
+      "name": "Farsta",
+      "lat": 59.2432,
+      "lon": 18.0916,
+      "depth": 0,
+      "lines": [
+        "green"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "farsta_strand",
+      "name": "Farsta strand",
+      "lat": 59.2384,
+      "lon": 18.0979,
+      "depth": 0,
+      "lines": [
+        "green"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "globen",
+      "name": "Globen",
+      "lat": 59.2937,
+      "lon": 18.0818,
+      "depth": 0,
+      "lines": [
+        "green"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "enskede_gard",
+      "name": "Enskede gård",
+      "lat": 59.2872,
+      "lon": 18.0755,
+      "depth": 0,
+      "lines": [
+        "green"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "sockenplan",
+      "name": "Sockenplan",
+      "lat": 59.2876,
+      "lon": 18.0654,
+      "depth": 0,
+      "lines": [
+        "green"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "svedmyra",
+      "name": "Svedmyra",
+      "lat": 59.2836,
+      "lon": 18.0579,
+      "depth": 0,
+      "lines": [
+        "green"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "stureby",
+      "name": "Stureby",
+      "lat": 59.2771,
+      "lon": 18.0485,
+      "depth": 0,
+      "lines": [
+        "green"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "bandhagen",
+      "name": "Bandhagen",
+      "lat": 59.2727,
+      "lon": 18.0344,
+      "depth": 0,
+      "lines": [
+        "green"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "hogdalen",
+      "name": "Högdalen",
+      "lat": 59.2642,
+      "lon": 18.042,
+      "depth": 0,
+      "lines": [
+        "green"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "ragsved",
+      "name": "Rågsved",
+      "lat": 59.2567,
+      "lon": 18.041,
+      "depth": 0,
+      "lines": [
+        "green"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "hagsatra",
+      "name": "Hagsätra",
+      "lat": 59.259,
+      "lon": 18.0273,
+      "depth": 0,
+      "lines": [
+        "green"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "10779",
+      "name": "Waldemarsudde",
+      "lat": 59.322644,
+      "lon": 18.111387,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "9885",
+      "name": "Bellmansro",
+      "lat": 59.324006,
+      "lon": 18.110548,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "9884",
+      "name": "Djurgårdsskolan",
+      "lat": 59.323234,
+      "lon": 18.104952,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "9883",
+      "name": "Skansen",
+      "lat": 59.323953,
+      "lon": 18.100582,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "9882",
+      "name": "Liljevalchs/Gröna Lund",
+      "lat": 59.325243,
+      "lon": 18.097146,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "9881",
+      "name": "Nordiska museet/Vasamuseet",
+      "lat": 59.329286,
+      "lon": 18.095511,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "9880",
+      "name": "Djurgårdsbron",
+      "lat": 59.331817,
+      "lon": 18.09236,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "11829",
+      "name": "Styrmansgatan",
+      "lat": 59.331583,
+      "lon": 18.084638,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "11882",
+      "name": "Nybroplan",
+      "lat": 59.332729,
+      "lon": 18.076569,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "11881",
+      "name": "Kungsträdgården",
+      "lat": 59.332792,
+      "lon": 18.070632,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "12275",
+      "name": "T-Centralen",
+      "lat": 59.33212,
+      "lon": 18.062138,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "1181",
+      "name": "Nockeby",
+      "lat": 59.32874,
+      "lon": 17.918568,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "9890",
+      "name": "Nockeby torg",
+      "lat": 59.328991,
+      "lon": 17.928322,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "10782",
+      "name": "Olovslund",
+      "lat": 59.327904,
+      "lon": 17.935239,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "9889",
+      "name": "Höglandstorget",
+      "lat": 59.323314,
+      "lon": 17.940038,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "1167",
+      "name": "Ålstens gård",
+      "lat": 59.320601,
+      "lon": 17.952095,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "9888",
+      "name": "Ålstensgatan",
+      "lat": 59.323438,
+      "lon": 17.956482,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "10781",
+      "name": "Smedslätten",
+      "lat": 59.320897,
+      "lon": 17.964376,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "9887",
+      "name": "Klövervägen",
+      "lat": 59.324991,
+      "lon": 17.973869,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "10780",
+      "name": "Alléparken",
+      "lat": 59.328999,
+      "lon": 17.974248,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "9879",
+      "name": "Alvik",
+      "lat": 59.333597,
+      "lon": 17.980402,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "11030",
+      "name": "Gåshaga brygga",
+      "lat": 59.356889,
+      "lon": 18.234089,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "12734",
+      "name": "Gåshaga",
+      "lat": 59.356678,
+      "lon": 18.227176,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "9466",
+      "name": "Käppala",
+      "lat": 59.352518,
+      "lon": 18.217468,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "9465",
+      "name": "Brevik",
+      "lat": 59.348462,
+      "lon": 18.203702,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "9464",
+      "name": "Högberga",
+      "lat": 59.343965,
+      "lon": 18.193285,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "9463",
+      "name": "Kottla",
+      "lat": 59.344364,
+      "lon": 18.180056,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "9462",
+      "name": "Skärsätra",
+      "lat": 59.343396,
+      "lon": 18.170345,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "11828",
+      "name": "AGA",
+      "lat": 59.346878,
+      "lon": 18.154042,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "9461",
+      "name": "Larsberg",
+      "lat": 59.350683,
+      "lon": 18.145723,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "9460",
+      "name": "Bodal",
+      "lat": 59.353121,
+      "lon": 18.138936,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "9459",
+      "name": "Baggeby",
+      "lat": 59.356956,
+      "lon": 18.133175,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "9458",
+      "name": "Torsvik",
+      "lat": 59.361912,
+      "lon": 18.117806,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "11031",
+      "name": "Ropsten",
+      "lat": 59.358137,
+      "lon": 18.103856,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "751",
+      "name": "Saltsjöbaden",
+      "lat": 59.279121,
+      "lon": 18.311442,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "9471",
+      "name": "Ringvägen",
+      "lat": 59.283244,
+      "lon": 18.302039,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "11198",
+      "name": "Neglinge",
+      "lat": 59.288461,
+      "lon": 18.291901,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "11199",
+      "name": "Igelboda",
+      "lat": 59.289995,
+      "lon": 18.275324,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "693",
+      "name": "Fisksätra",
+      "lat": 59.29408,
+      "lon": 18.255817,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "9472",
+      "name": "Östervik",
+      "lat": 59.29487,
+      "lon": 18.23528,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "9473",
+      "name": "Saltsjö-Duvnäs",
+      "lat": 59.30052,
+      "lon": 18.198606,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "9474",
+      "name": "Storängen",
+      "lat": 59.305642,
+      "lon": 18.177787,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "9475",
+      "name": "Lillängen",
+      "lat": 59.305216,
+      "lon": 18.160942,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "9476",
+      "name": "Saltsjö-Järla",
+      "lat": 59.30682,
+      "lon": 18.149444,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "1150",
+      "name": "Solsidan",
+      "lat": 59.270912,
+      "lon": 18.29554,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "9477",
+      "name": "Erstaviksbadet",
+      "lat": 59.272955,
+      "lon": 18.284968,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "11200",
+      "name": "Tattby",
+      "lat": 59.279621,
+      "lon": 18.28026,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "9478",
+      "name": "Tippen",
+      "lat": 59.284111,
+      "lon": 18.277285,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "11965",
+      "name": "Stockholms östra",
+      "lat": 59.3468,
+      "lon": 18.070054,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "11951",
+      "name": "Universitetet",
+      "lat": 59.365088,
+      "lon": 18.050983,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "9179",
+      "name": "Stocksund",
+      "lat": 59.385103,
+      "lon": 18.043924,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "11129",
+      "name": "Mörby",
+      "lat": 59.392343,
+      "lon": 18.047453,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "11948",
+      "name": "Djursholms Ösby",
+      "lat": 59.398706,
+      "lon": 18.05924,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "11949",
+      "name": "Bråvallavägen",
+      "lat": 59.405588,
+      "lon": 18.060602,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "11130",
+      "name": "Djursholms Ekeby",
+      "lat": 59.412892,
+      "lon": 18.057667,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "11950",
+      "name": "Enebyberg",
+      "lat": 59.425888,
+      "lon": 18.051219,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "11952",
+      "name": "Roslags Näsby",
+      "lat": 59.435218,
+      "lon": 18.057396,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "12318",
+      "name": "Tibble",
+      "lat": 59.442138,
+      "lon": 18.062573,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "13058",
+      "name": "Ensta",
+      "lat": 59.451945,
+      "lon": 18.063619,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "10692",
+      "name": "Visinge",
+      "lat": 59.462733,
+      "lon": 18.063211,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "11028",
+      "name": "Täby kyrkby",
+      "lat": 59.49299,
+      "lon": 18.06622,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "10693",
+      "name": "Kragstalund",
+      "lat": 59.510263,
+      "lon": 18.075736,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "11862",
+      "name": "Bällsta",
+      "lat": 59.523716,
+      "lon": 18.071743,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "783",
+      "name": "Vallentuna",
+      "lat": 59.533752,
+      "lon": 18.079842,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "10512",
+      "name": "Ormsta",
+      "lat": 59.546354,
+      "lon": 18.079666,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "12335",
+      "name": "Molnby",
+      "lat": 59.557211,
+      "lon": 18.084958,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "12806",
+      "name": "Vedalund",
+      "lat": 59.568242,
+      "lon": 18.098429,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "1154",
+      "name": "Lindholmen",
+      "lat": 59.583546,
+      "lon": 18.108922,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "11560",
+      "name": "Frösunda",
+      "lat": 59.62423,
+      "lon": 18.170483,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "10511",
+      "name": "Ekskogen",
+      "lat": 59.638967,
+      "lon": 18.226997,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "713",
+      "name": "Kårsta",
+      "lat": 59.656756,
+      "lon": 18.267532,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "12142",
+      "name": "Täby centrum",
+      "lat": 59.444335,
+      "lon": 18.07463,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "11946",
+      "name": "Galoppfältet",
+      "lat": 59.446904,
+      "lon": 18.08516,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "11947",
+      "name": "Viggbyholm",
+      "lat": 59.449255,
+      "lon": 18.104215,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "11944",
+      "name": "Hägernäs",
+      "lat": 59.450916,
+      "lon": 18.125228,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "12789",
+      "name": "Arninge",
+      "lat": 59.458864,
+      "lon": 18.141348,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "11945",
+      "name": "Rydbo",
+      "lat": 59.465407,
+      "lon": 18.185861,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "11941",
+      "name": "Täljö",
+      "lat": 59.473224,
+      "lon": 18.235397,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "11940",
+      "name": "Åkers Runö",
+      "lat": 59.480647,
+      "lon": 18.270416,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "11942",
+      "name": "Åkersberga",
+      "lat": 59.479001,
+      "lon": 18.299775,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "11943",
+      "name": "Tunagård",
+      "lat": 59.468753,
+      "lon": 18.307305,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "12020",
+      "name": "Österskär",
+      "lat": 59.460755,
+      "lon": 18.311586,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "11959",
+      "name": "Vendevägen",
+      "lat": 59.399947,
+      "lon": 18.067978,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "11961",
+      "name": "Östberga",
+      "lat": 59.404227,
+      "lon": 18.073953,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "11960",
+      "name": "Altorp",
+      "lat": 59.410938,
+      "lon": 18.072904,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "11963",
+      "name": "Lahäll",
+      "lat": 59.424205,
+      "lon": 18.074266,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "11964",
+      "name": "Näsby allé",
+      "lat": 59.427396,
+      "lon": 18.085667,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "11962",
+      "name": "Näsbypark",
+      "lat": 59.430306,
+      "lon": 18.095616,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "12001",
+      "name": "Solna station",
+      "lat": 59.363754,
+      "lon": 18.008219,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "12580",
+      "name": "Solna centrum",
+      "lat": 59.361356,
+      "lon": 17.996283,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "12288",
+      "name": "Solna Business Park",
+      "lat": 59.359507,
+      "lon": 17.979549,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "12287",
+      "name": "Sundbybergs centrum",
+      "lat": 59.360839,
+      "lon": 17.970407,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "12286",
+      "name": "Bällsta bro",
+      "lat": 59.36068,
+      "lon": 17.962966,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "12285",
+      "name": "Karlsbodavägen",
+      "lat": 59.355981,
+      "lon": 17.961341,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "12801",
+      "name": "Norra Ulvsunda",
+      "lat": 59.349889,
+      "lon": 17.962391,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "12800",
+      "name": "Johannesfred",
+      "lat": 59.342796,
+      "lon": 17.96978,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "9896",
+      "name": "Alvik",
+      "lat": 59.333591,
+      "lon": 17.980191,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "9895",
+      "name": "Alviks strand",
+      "lat": 59.3289,
+      "lon": 17.982026,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "9894",
+      "name": "Stora Essingen",
+      "lat": 59.324757,
+      "lon": 17.99312,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "12165",
+      "name": "Gröndal",
+      "lat": 59.315773,
+      "lon": 18.010357,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "10786",
+      "name": "Trekanten",
+      "lat": 59.314066,
+      "lon": 18.018307,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "10785",
+      "name": "Liljeholmen",
+      "lat": 59.310605,
+      "lon": 18.024809,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "10784",
+      "name": "Årstadal",
+      "lat": 59.305825,
+      "lon": 18.025525,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "3660",
+      "name": "Årstaberg",
+      "lat": 59.299248,
+      "lon": 18.029705,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "9893",
+      "name": "Årstafältet",
+      "lat": 59.296342,
+      "lon": 18.039716,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "9892",
+      "name": "Valla torg",
+      "lat": 59.295011,
+      "lon": 18.048441,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "9891",
+      "name": "Linde",
+      "lat": 59.293263,
+      "lon": 18.063634,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "12677",
+      "name": "Globen",
+      "lat": 59.294124,
+      "lon": 18.076611,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "10783",
+      "name": "Gullmarsplan",
+      "lat": 59.299492,
+      "lon": 18.080314,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "9897",
+      "name": "Mårtensdal",
+      "lat": 59.302675,
+      "lon": 18.088033,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "9898",
+      "name": "Luma",
+      "lat": 59.304172,
+      "lon": 18.095878,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "9899",
+      "name": "Sickla kaj",
+      "lat": 59.302769,
+      "lon": 18.103624,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "9900",
+      "name": "Sickla udde",
+      "lat": 59.306252,
+      "lon": 18.108776,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "67981",
+      "name": "Sickla",
+      "lat": 59.306715,
+      "lon": 18.115414,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "12784",
+      "name": "Bromma flygplats",
+      "lat": 59.356889,
+      "lon": 17.946664,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "12572",
+      "name": "Bromma Blocks",
+      "lat": 59.353886,
+      "lon": 17.956856,
+      "depth": 0,
+      "mode": "lightrail"
+    },
+    {
+      "id": "721",
+      "name": "Södertälje centrum station",
+      "lat": 59.192067,
+      "lon": 17.627291,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "49",
+      "name": "Södertälje hamn station",
+      "lat": 59.179044,
+      "lon": 17.64629,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "791",
+      "name": "Östertälje",
+      "lat": 59.183788,
+      "lon": 17.661441,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "748",
+      "name": "Rönninge",
+      "lat": 59.193594,
+      "lon": 17.75151,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "776",
+      "name": "Tumba station",
+      "lat": 59.19965,
+      "lon": 17.837078,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "775",
+      "name": "Tullinge",
+      "lat": 59.205408,
+      "lon": 17.903804,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "31",
+      "name": "Flemingsberg",
+      "lat": 59.219028,
+      "lon": 17.947176,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "702",
+      "name": "Huddinge station",
+      "lat": 59.235823,
+      "lon": 17.977971,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "772",
+      "name": "Stuvsta",
+      "lat": 59.253279,
+      "lon": 17.99585,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "789",
+      "name": "Älvsjö",
+      "lat": 59.278549,
+      "lon": 18.010451,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "10787",
+      "name": "Årstaberg",
+      "lat": 59.299684,
+      "lon": 18.028338,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "765",
+      "name": "Stockholms södra",
+      "lat": 59.313578,
+      "lon": 18.06192,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "1617",
+      "name": "Stockholm City",
+      "lat": 59.331139,
+      "lon": 18.059447,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "1618",
+      "name": "Stockholm Odenplan",
+      "lat": 59.343213,
+      "lon": 18.04572,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "759",
+      "name": "Solna station",
+      "lat": 59.366504,
+      "lon": 18.009571,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "781",
+      "name": "Ulriksdal",
+      "lat": 59.3799,
+      "lon": 18.001071,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "11423",
+      "name": "Helenelund",
+      "lat": 59.409402,
+      "lon": 17.962018,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "758",
+      "name": "Sollentuna station",
+      "lat": 59.428009,
+      "lon": 17.948838,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "703",
+      "name": "Häggvik",
+      "lat": 59.443548,
+      "lon": 17.933176,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "718",
+      "name": "Norrviken",
+      "lat": 59.457997,
+      "lon": 17.924576,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "623",
+      "name": "Rotebro",
+      "lat": 59.476565,
+      "lon": 17.914091,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "782",
+      "name": "Upplands Väsby",
+      "lat": 59.521641,
+      "lon": 17.899546,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "556",
+      "name": "Arlanda central",
+      "lat": 59.649357,
+      "lon": 17.928567,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "559",
+      "name": "Knivsta station (Knivsta)",
+      "lat": 59.726062,
+      "lon": 17.787278,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "739",
+      "name": "Rosersberg",
+      "lat": 59.583033,
+      "lon": 17.880233,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "27",
+      "name": "Märsta",
+      "lat": 59.627523,
+      "lon": 17.861107,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "12036",
+      "name": "Västerhaninge",
+      "lat": 59.12293,
+      "lon": 18.102915,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "706",
+      "name": "Jordbro",
+      "lat": 59.142316,
+      "lon": 18.126365,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "699",
+      "name": "Handen station",
+      "lat": 59.168195,
+      "lon": 18.135053,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "12315",
+      "name": "Vega",
+      "lat": 59.18628,
+      "lon": 18.1356,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "757",
+      "name": "Skogås",
+      "lat": 59.218418,
+      "lon": 18.154231,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "774",
+      "name": "Trångsund",
+      "lat": 59.227594,
+      "lon": 18.131059,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "692",
+      "name": "Farsta strand",
+      "lat": 59.236656,
+      "lon": 18.101952,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "773",
+      "name": "Sundbyberg",
+      "lat": 59.360944,
+      "lon": 17.971237,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "764",
+      "name": "Spånga",
+      "lat": 59.383847,
+      "lon": 17.897736,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "12604",
+      "name": "Barkarby",
+      "lat": 59.404576,
+      "lon": 17.866036,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "705",
+      "name": "Jakobsberg station",
+      "lat": 59.423702,
+      "lon": 17.832965,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "710",
+      "name": "Kallhäll",
+      "lat": 59.452387,
+      "lon": 17.807122,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "284",
+      "name": "Kungsängen",
+      "lat": 59.478001,
+      "lon": 17.752902,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "687",
+      "name": "Bro",
+      "lat": 59.512244,
+      "lon": 17.633251,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "11931",
+      "name": "Hemfosa",
+      "lat": 59.068894,
+      "lon": 17.976549,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "12223",
+      "name": "Tungelsta",
+      "lat": 59.102499,
+      "lon": 18.045256,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "12222",
+      "name": "Krigslida",
+      "lat": 59.109076,
+      "lon": 18.06596,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "709",
+      "name": "Järna",
+      "lat": 59.093459,
+      "lon": 17.567198,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "55",
+      "name": "Södertälje syd station",
+      "lat": 59.162354,
+      "lon": 17.643625,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "13123",
+      "name": "Ropsten",
+      "lat": 59.358321,
+      "lon": 18.106337,
+      "depth": 0,
+      "mode": "ferry"
+    },
+    {
+      "id": "12099",
+      "name": "Frihamnen",
+      "lat": 59.345559,
+      "lon": 18.131528,
+      "depth": 0,
+      "mode": "ferry"
+    },
+    {
+      "id": "12003",
+      "name": "Lidingö/Dalénum",
+      "lat": 59.343186,
+      "lon": 18.152407,
+      "depth": 0,
+      "mode": "ferry"
+    },
+    {
+      "id": "12376",
+      "name": "Nacka strand",
+      "lat": 59.318396,
+      "lon": 18.16004,
+      "depth": 0,
+      "mode": "ferry"
+    },
+    {
+      "id": "12007",
+      "name": "Blockhusudden",
+      "lat": 59.320915,
+      "lon": 18.151398,
+      "depth": 0,
+      "mode": "ferry"
+    },
+    {
+      "id": "12004",
+      "name": "Kvarnholmen",
+      "lat": 59.317685,
+      "lon": 18.137031,
+      "depth": 0,
+      "mode": "ferry"
+    },
+    {
+      "id": "12006",
+      "name": "Finnboda hamn",
+      "lat": 59.31609,
+      "lon": 18.12447,
+      "depth": 0,
+      "mode": "ferry"
+    },
+    {
+      "id": "12097",
+      "name": "Saltsjöqvarn",
+      "lat": 59.315226,
+      "lon": 18.111051,
+      "depth": 0,
+      "mode": "ferry"
+    },
+    {
+      "id": "12008",
+      "name": "Allmänna gränd",
+      "lat": 59.324162,
+      "lon": 18.094496,
+      "depth": 0,
+      "mode": "ferry"
+    },
+    {
+      "id": "12930",
+      "name": "Nybroplan",
+      "lat": 59.33206,
+      "lon": 18.076519,
+      "depth": 0,
+      "mode": "ferry"
+    },
+    {
+      "id": "69519",
+      "name": "Ålstäket",
+      "lat": 59.315653,
+      "lon": 18.458835,
+      "depth": 0,
+      "mode": "ferry"
+    },
+    {
+      "id": "69482",
+      "name": "Norra Lagnö",
+      "lat": 59.355384,
+      "lon": 18.411658,
+      "depth": 0,
+      "mode": "ferry"
+    },
+    {
+      "id": "69507",
+      "name": "Koviksudde",
+      "lat": 59.363296,
+      "lon": 18.342204,
+      "depth": 0,
+      "mode": "ferry"
+    },
+    {
+      "id": "12686",
+      "name": "Riset",
+      "lat": 59.360083,
+      "lon": 18.285485,
+      "depth": 0,
+      "mode": "ferry"
+    },
+    {
+      "id": "69500",
+      "name": "Slussen",
+      "lat": 59.323289,
+      "lon": 18.076139,
+      "depth": 0,
+      "mode": "ferry"
+    },
+    {
+      "id": "12903",
+      "name": "Strömkajen",
+      "lat": 59.328791,
+      "lon": 18.076065,
+      "depth": 0,
+      "mode": "ferry"
+    },
+    {
+      "id": "11822",
+      "name": "Tappström",
+      "lat": 59.292137,
+      "lon": 17.813466,
+      "depth": 0,
+      "mode": "ferry"
+    },
+    {
+      "id": "12035",
+      "name": "Kungshättan",
+      "lat": 59.304687,
+      "lon": 17.902413,
+      "depth": 0,
+      "mode": "ferry"
+    },
+    {
+      "id": "12968",
+      "name": "Ekensberg",
+      "lat": 59.315606,
+      "lon": 17.988175,
+      "depth": 0,
+      "mode": "ferry"
+    },
+    {
+      "id": "12967",
+      "name": "Lilla Essingen",
+      "lat": 59.32314,
+      "lon": 18.008688,
+      "depth": 0,
+      "mode": "ferry"
+    },
+    {
+      "id": "12014",
+      "name": "Klara Mälarstrand",
+      "lat": 59.327713,
+      "lon": 18.058119,
+      "depth": 0,
+      "mode": "ferry"
+    }
   ],
   "lines": [
     {
@@ -108,49 +2573,718 @@
       "color": "#e3000f",
       "name": "Röd 13 (Norsborg–Ropsten)",
       "line": "red",
-      "stations": ["norsborg","hallunda","alby","fittja","masmo","varby_gard","varberg","skarholmen","satra","bredang","malarhojden","axelsberg","ornsberg","aspudden","liljeholmen","hornstull","zinkensdamm","mariatorget","slussen","gamlastan","tcentralen","ostermalmstorg","karlaplan","gardet","ropsten"]
+      "stations": [
+        "norsborg",
+        "hallunda",
+        "alby",
+        "fittja",
+        "masmo",
+        "varby_gard",
+        "varberg",
+        "skarholmen",
+        "satra",
+        "bredang",
+        "malarhojden",
+        "axelsberg",
+        "ornsberg",
+        "aspudden",
+        "liljeholmen",
+        "hornstull",
+        "zinkensdamm",
+        "mariatorget",
+        "slussen",
+        "gamlastan",
+        "tcentralen",
+        "ostermalmstorg",
+        "karlaplan",
+        "gardet",
+        "ropsten"
+      ],
+      "mode": "subway"
     },
     {
       "id": "T14",
       "color": "#e3000f",
       "name": "Röd 14 (Fruängen–Mörby centrum)",
       "line": "red",
-      "stations": ["fruangen","vastertorp","hagerstensasen","telefonplan","midsommarkransen","liljeholmen","hornstull","zinkensdamm","mariatorget","slussen","gamlastan","tcentralen","ostermalmstorg","stadion","tekniska","universitetet","bergshamra","danderyd","morby"]
+      "stations": [
+        "fruangen",
+        "vastertorp",
+        "hagerstensasen",
+        "telefonplan",
+        "midsommarkransen",
+        "liljeholmen",
+        "hornstull",
+        "zinkensdamm",
+        "mariatorget",
+        "slussen",
+        "gamlastan",
+        "tcentralen",
+        "ostermalmstorg",
+        "stadion",
+        "tekniska",
+        "universitetet",
+        "bergshamra",
+        "danderyd",
+        "morby"
+      ],
+      "mode": "subway"
     },
     {
       "id": "T17",
       "color": "#00923f",
       "name": "Grön 17 (Åkeshov–Skarpnäck)",
       "line": "green",
-      "stations": ["akeshov","brommaplan","abrahamsberg","stora_mossen","alvik","kristineberg","thorildsplan","fridhemsplan","sterikplan","odenplan","radmansgatan","hotorget","tcentralen","gamlastan","slussen","medborgarplatsen","skanstull","gullmarsplan","skarmarbrink","hammarbyhojden","bjorkhagen","karrtorp","bagarmossen","skarpnack"]
+      "stations": [
+        "akeshov",
+        "brommaplan",
+        "abrahamsberg",
+        "stora_mossen",
+        "alvik",
+        "kristineberg",
+        "thorildsplan",
+        "fridhemsplan",
+        "sterikplan",
+        "odenplan",
+        "radmansgatan",
+        "hotorget",
+        "tcentralen",
+        "gamlastan",
+        "slussen",
+        "medborgarplatsen",
+        "skanstull",
+        "gullmarsplan",
+        "skarmarbrink",
+        "hammarbyhojden",
+        "bjorkhagen",
+        "karrtorp",
+        "bagarmossen",
+        "skarpnack"
+      ],
+      "mode": "subway"
     },
     {
       "id": "T18",
       "color": "#00923f",
       "name": "Grön 18 (Alvik–Farsta strand)",
       "line": "green",
-      "stations": ["alvik","kristineberg","thorildsplan","fridhemsplan","sterikplan","odenplan","radmansgatan","hotorget","tcentralen","gamlastan","slussen","medborgarplatsen","skanstull","gullmarsplan","skarmarbrink","blasut","sandsborg","skogskyrkogarden","tallkrogen","gubbangen","hokarangen","farsta","farsta_strand"]
+      "stations": [
+        "alvik",
+        "kristineberg",
+        "thorildsplan",
+        "fridhemsplan",
+        "sterikplan",
+        "odenplan",
+        "radmansgatan",
+        "hotorget",
+        "tcentralen",
+        "gamlastan",
+        "slussen",
+        "medborgarplatsen",
+        "skanstull",
+        "gullmarsplan",
+        "skarmarbrink",
+        "blasut",
+        "sandsborg",
+        "skogskyrkogarden",
+        "tallkrogen",
+        "gubbangen",
+        "hokarangen",
+        "farsta",
+        "farsta_strand"
+      ],
+      "mode": "subway"
     },
     {
       "id": "T19",
       "color": "#00923f",
       "name": "Grön 19 (Hässelby strand–Hagsätra)",
       "line": "green",
-      "stations": ["hasselby_strand","hasselby_gard","johannelund","vallingby","racksta","blackeberg","islandstorget","angbyplan","brommaplan","abrahamsberg","stora_mossen","alvik","kristineberg","thorildsplan","fridhemsplan","sterikplan","odenplan","radmansgatan","hotorget","tcentralen","gamlastan","slussen","medborgarplatsen","skanstull","gullmarsplan","globen","enskede_gard","sockenplan","svedmyra","stureby","bandhagen","hogdalen","ragsved","hagsatra"]
+      "stations": [
+        "hasselby_strand",
+        "hasselby_gard",
+        "johannelund",
+        "vallingby",
+        "racksta",
+        "blackeberg",
+        "islandstorget",
+        "angbyplan",
+        "brommaplan",
+        "abrahamsberg",
+        "stora_mossen",
+        "alvik",
+        "kristineberg",
+        "thorildsplan",
+        "fridhemsplan",
+        "sterikplan",
+        "odenplan",
+        "radmansgatan",
+        "hotorget",
+        "tcentralen",
+        "gamlastan",
+        "slussen",
+        "medborgarplatsen",
+        "skanstull",
+        "gullmarsplan",
+        "globen",
+        "enskede_gard",
+        "sockenplan",
+        "svedmyra",
+        "stureby",
+        "bandhagen",
+        "hogdalen",
+        "ragsved",
+        "hagsatra"
+      ],
+      "mode": "subway"
     },
     {
       "id": "T10",
       "color": "#0089ca",
       "name": "Blå 10 (Kungsträdgården–Hjulsta)",
       "line": "blue",
-      "stations": ["kungstradgarden","tcentralen","radhuset","fridhemsplan","stadshagen","vastra_skogen","huvudsta","solna_strand","sundbyberg_c","duvbo","rissne","rinkeby","tensta","hjulsta"]
+      "stations": [
+        "kungstradgarden",
+        "tcentralen",
+        "radhuset",
+        "fridhemsplan",
+        "stadshagen",
+        "vastra_skogen",
+        "huvudsta",
+        "solna_strand",
+        "sundbyberg_c",
+        "duvbo",
+        "rissne",
+        "rinkeby",
+        "tensta",
+        "hjulsta"
+      ],
+      "mode": "subway"
     },
     {
       "id": "T11",
       "color": "#0089ca",
       "name": "Blå 11 (Kungsträdgården–Akalla)",
       "line": "blue",
-      "stations": ["kungstradgarden","tcentralen","radhuset","fridhemsplan","stadshagen","vastra_skogen","solna_centrum","nackrosen","hallonbergen","kista","husby","akalla"]
+      "stations": [
+        "kungstradgarden",
+        "tcentralen",
+        "radhuset",
+        "fridhemsplan",
+        "stadshagen",
+        "vastra_skogen",
+        "solna_centrum",
+        "nackrosen",
+        "hallonbergen",
+        "kista",
+        "husby",
+        "akalla"
+      ],
+      "mode": "subway"
+    },
+    {
+      "id": "S7",
+      "line": "7",
+      "name": "Spårväg city",
+      "color": "#f4c430",
+      "mode": "tram",
+      "stations": [
+        "10779",
+        "9885",
+        "9884",
+        "9883",
+        "9882",
+        "9881",
+        "9880",
+        "11829",
+        "11882",
+        "11881",
+        "12275"
+      ]
+    },
+    {
+      "id": "S12",
+      "line": "12",
+      "name": "Nockebybanan",
+      "color": "#f4c430",
+      "mode": "tram",
+      "stations": [
+        "1181",
+        "9890",
+        "10782",
+        "9889",
+        "1167",
+        "9888",
+        "10781",
+        "9887",
+        "10780",
+        "9879"
+      ]
+    },
+    {
+      "id": "S21",
+      "line": "21",
+      "name": "Lidingöbanan",
+      "color": "#f4c430",
+      "mode": "tram",
+      "stations": [
+        "11030",
+        "12734",
+        "9466",
+        "9465",
+        "9464",
+        "9463",
+        "9462",
+        "11828",
+        "9461",
+        "9460",
+        "9459",
+        "9458",
+        "11031"
+      ]
+    },
+    {
+      "id": "L25",
+      "line": "25",
+      "name": "Saltsjöbanan",
+      "color": "#ff6fb5",
+      "mode": "lightrail",
+      "stations": [
+        "751",
+        "9471",
+        "11198",
+        "11199",
+        "693",
+        "9472",
+        "9473",
+        "9474",
+        "9475",
+        "9476"
+      ]
+    },
+    {
+      "id": "L26",
+      "line": "26",
+      "name": "Saltsjöbanan",
+      "color": "#ff6fb5",
+      "mode": "lightrail",
+      "stations": [
+        "1150",
+        "9477",
+        "11200",
+        "9478",
+        "11199"
+      ]
+    },
+    {
+      "id": "L27S",
+      "line": "27S",
+      "name": "Kårstalinjen",
+      "color": "#c266d9",
+      "mode": "lightrail",
+      "stations": [
+        "11965",
+        "11951",
+        "9179",
+        "11129",
+        "11948",
+        "11949",
+        "11130",
+        "11950",
+        "11952",
+        "12318",
+        "13058",
+        "10692",
+        "11028",
+        "10693",
+        "11862",
+        "783",
+        "10512",
+        "12335",
+        "12806",
+        "1154",
+        "11560",
+        "10511",
+        "713"
+      ]
+    },
+    {
+      "id": "L27",
+      "line": "27",
+      "name": "Kårstalinjen",
+      "color": "#c266d9",
+      "mode": "lightrail",
+      "stations": [
+        "11965",
+        "11951",
+        "9179",
+        "11129",
+        "11948",
+        "11949",
+        "11130",
+        "11950",
+        "11952",
+        "12318",
+        "13058",
+        "10692",
+        "11028",
+        "10693",
+        "11862",
+        "783",
+        "10512",
+        "12335",
+        "12806",
+        "1154",
+        "11560",
+        "10511",
+        "713"
+      ]
+    },
+    {
+      "id": "L28",
+      "line": "28",
+      "name": "Österskärslinjen",
+      "color": "#c266d9",
+      "mode": "lightrail",
+      "stations": [
+        "11965",
+        "11951",
+        "9179",
+        "11129",
+        "11948",
+        "11949",
+        "11130",
+        "11950",
+        "11952",
+        "12142",
+        "11946",
+        "11947",
+        "11944",
+        "12789",
+        "11945",
+        "11941",
+        "11940",
+        "11942"
+      ]
+    },
+    {
+      "id": "L28S",
+      "line": "28S",
+      "name": "Österskärslinjen",
+      "color": "#c266d9",
+      "mode": "lightrail",
+      "stations": [
+        "11965",
+        "11951",
+        "9179",
+        "11129",
+        "11948",
+        "11949",
+        "11130",
+        "11950",
+        "11952",
+        "12142",
+        "11946",
+        "11947",
+        "11944",
+        "12789",
+        "11945",
+        "11941",
+        "11940",
+        "11942",
+        "11943",
+        "12020"
+      ]
+    },
+    {
+      "id": "L28X",
+      "line": "28X",
+      "name": "Österskärslinjen",
+      "color": "#c266d9",
+      "mode": "lightrail",
+      "stations": [
+        "11965",
+        "11951",
+        "9179",
+        "11129",
+        "11948",
+        "11949",
+        "11130",
+        "11950",
+        "11952",
+        "12142",
+        "11946",
+        "11947",
+        "11944",
+        "12789",
+        "11945",
+        "11941",
+        "11940",
+        "11942",
+        "11943",
+        "12020"
+      ]
+    },
+    {
+      "id": "L29",
+      "line": "29",
+      "name": "Näsbyparkslinjen",
+      "color": "#c266d9",
+      "mode": "lightrail",
+      "stations": [
+        "11965",
+        "11951",
+        "9179",
+        "11129",
+        "11948",
+        "11959",
+        "11961",
+        "11960",
+        "11963",
+        "11964",
+        "11962"
+      ]
+    },
+    {
+      "id": "L30",
+      "line": "30",
+      "name": "Tvärbanan",
+      "color": "#b084ff",
+      "mode": "lightrail",
+      "stations": [
+        "12001",
+        "12580",
+        "12288",
+        "12287",
+        "12286",
+        "12285",
+        "12801",
+        "12800",
+        "9896",
+        "9895",
+        "9894",
+        "12165",
+        "10786",
+        "10785",
+        "10784",
+        "3660",
+        "9893",
+        "9892",
+        "9891",
+        "12677",
+        "10783",
+        "9897",
+        "9898",
+        "9899",
+        "9900",
+        "67981"
+      ]
+    },
+    {
+      "id": "L31",
+      "line": "31",
+      "name": "Tvärbanan",
+      "color": "#b084ff",
+      "mode": "lightrail",
+      "stations": [
+        "12784",
+        "12572",
+        "12801",
+        "12800",
+        "9896",
+        "9895"
+      ]
+    },
+    {
+      "id": "J40",
+      "line": "40",
+      "name": "40",
+      "color": "#ff7a1f",
+      "mode": "rail",
+      "stations": [
+        "721",
+        "49",
+        "791",
+        "748",
+        "776",
+        "775",
+        "31",
+        "702",
+        "772",
+        "789",
+        "10787",
+        "765",
+        "1617",
+        "1618",
+        "759",
+        "781",
+        "11423",
+        "758",
+        "703",
+        "718",
+        "623",
+        "782",
+        "556",
+        "559"
+      ]
+    },
+    {
+      "id": "J41",
+      "line": "41",
+      "name": "41",
+      "color": "#ff7a1f",
+      "mode": "rail",
+      "stations": [
+        "721",
+        "49",
+        "791",
+        "748",
+        "776",
+        "775",
+        "31",
+        "702",
+        "772",
+        "789",
+        "10787",
+        "765",
+        "1617",
+        "1618",
+        "759",
+        "781",
+        "11423",
+        "758",
+        "703",
+        "718",
+        "623",
+        "782",
+        "739",
+        "27"
+      ]
+    },
+    {
+      "id": "J43",
+      "line": "43",
+      "name": "43",
+      "color": "#ff7a1f",
+      "mode": "rail",
+      "stations": [
+        "12036",
+        "706",
+        "699",
+        "12315",
+        "757",
+        "774",
+        "692",
+        "789",
+        "10787",
+        "765",
+        "1617",
+        "1618",
+        "773",
+        "764",
+        "12604",
+        "705",
+        "710",
+        "284",
+        "687"
+      ]
+    },
+    {
+      "id": "J43X",
+      "line": "43X",
+      "name": "43X",
+      "color": "#ff7a1f",
+      "mode": "rail",
+      "stations": [
+        "11931",
+        "12223",
+        "12222",
+        "12036",
+        "699",
+        "692",
+        "789",
+        "10787",
+        "765",
+        "1617",
+        "1618",
+        "773",
+        "764",
+        "12604",
+        "705",
+        "710"
+      ]
+    },
+    {
+      "id": "J48",
+      "line": "48",
+      "name": "48",
+      "color": "#ff7a1f",
+      "mode": "rail",
+      "stations": [
+        "709",
+        "55",
+        "49",
+        "721"
+      ]
+    },
+    {
+      "id": "B80",
+      "line": "80",
+      "name": "80",
+      "color": "#24d4d4",
+      "mode": "ferry",
+      "stations": [
+        "13123",
+        "12099",
+        "12003",
+        "12376",
+        "12007",
+        "12004",
+        "12006",
+        "12097",
+        "12008",
+        "12930"
+      ]
+    },
+    {
+      "id": "B80X",
+      "line": "80X",
+      "name": "80X",
+      "color": "#24d4d4",
+      "mode": "ferry",
+      "stations": [
+        "12376",
+        "12930"
+      ]
+    },
+    {
+      "id": "B84",
+      "line": "84",
+      "name": "84",
+      "color": "#24d4d4",
+      "mode": "ferry",
+      "stations": [
+        "69519",
+        "69482",
+        "69507",
+        "12686",
+        "69500",
+        "12903"
+      ]
+    },
+    {
+      "id": "B89",
+      "line": "89",
+      "name": "89",
+      "color": "#24d4d4",
+      "mode": "ferry",
+      "stations": [
+        "11822",
+        "12035",
+        "12968",
+        "12967",
+        "12014"
+      ]
     }
   ]
 }

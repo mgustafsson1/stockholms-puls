@@ -8,6 +8,8 @@ import { Alerts } from "./ui/Alerts";
 import { InfoPanel } from "./ui/InfoPanel";
 import { StationInfoPanel } from "./ui/StationInfoPanel";
 import { AIPanel } from "./ui/AIPanel";
+import { StationSearch } from "./ui/StationSearch";
+import { TrendPanel } from "./ui/TrendPanel";
 
 export default function App() {
   useTrafficStream();
@@ -21,12 +23,14 @@ export default function App() {
       <Scene />
       <div className="ui-overlay">
         <Header />
+        <StationSearch />
         <Controls />
         <Legend />
         <Alerts />
         <InfoPanel />
         <StationInfoPanel />
         <AIPanel />
+        <TrendPanel />
         <button
           onClick={() => setShowLabels(!showLabels)}
           className="panel"

@@ -15,7 +15,7 @@ const PRESETS: Record<string, { pos: [number, number, number]; target: [number, 
   anomaly: { pos: [4, 10, 14], target: [-3, -1.5, 0] },
 };
 
-const IDLE_BEFORE_ORBIT_MS = 4500;
+const IDLE_BEFORE_ORBIT_MS = 30_000;
 
 export function CameraController({ projection }: Props) {
   const { camera } = useThree();
@@ -23,12 +23,15 @@ export function CameraController({ projection }: Props) {
   const mode = useAppStore((s) => s.cameraMode);
   const followId = useAppStore((s) => s.followTrainId);
   const trains = useAppStore((s) => s.trains);
+  const selectedStationId = useAppStore((s) => s.selectedStationId);
+  const network = useAppStore((s) => s.network);
 
   const targetVec = useRef(new THREE.Vector3(0, -1, 0));
   const desiredPos = useRef(new THREE.Vector3(6, 12, 16));
   const lastInteraction = useRef(Date.now());
   const [autoOrbit, setAutoOrbit] = useState(false);
   const orbitAngle = useRef(0);
+  const flyToStationUntil = useRef(0);
 
   useEffect(() => {
     const preset = PRESETS[mode];
@@ -37,6 +40,18 @@ export function CameraController({ projection }: Props) {
       targetVec.current.set(...preset.target);
     }
   }, [mode]);
+
+  useEffect(() => {
+    if (!selectedStationId || !network) return;
+    const station = network.stations.find((s) => s.id === selectedStationId);
+    if (!station) return;
+    const [x, y, z] = projection.projectArray(station);
+    targetVec.current.set(x, y, z);
+    desiredPos.current.set(x + 2.5, y + 3.5, z + 2.5);
+    flyToStationUntil.current = Date.now() + 900;
+    lastInteraction.current = Date.now();
+    setAutoOrbit(false);
+  }, [selectedStationId, network, projection]);
 
   useEffect(() => {
     const handler = () => {
@@ -56,6 +71,16 @@ export function CameraController({ projection }: Props) {
   useFrame((state, delta) => {
     const lerp = Math.min(1, delta * 1.6);
     const idleTime = Date.now() - lastInteraction.current;
+
+    if (flyToStationUntil.current > Date.now()) {
+      const k = Math.min(1, delta * 3.5);
+      camera.position.lerp(desiredPos.current, k);
+      if (controlsRef.current) {
+        controlsRef.current.target.lerp(targetVec.current, k);
+      }
+      controlsRef.current?.update();
+      return;
+    }
 
     if (mode === "overview") {
       if (!autoOrbit && idleTime > IDLE_BEFORE_ORBIT_MS) {
@@ -122,13 +147,27 @@ export function CameraController({ projection }: Props) {
   return (
     <OrbitControls
       ref={controlsRef}
-      enablePan={mode === "overview" && !autoOrbit}
+      enablePan={mode !== "follow" && !autoOrbit}
       enableZoom={true}
       enableRotate={mode !== "follow" && !autoOrbit}
-      minDistance={6}
-      maxDistance={250}
+      screenSpacePanning
+      mouseButtons={{
+        LEFT: THREE.MOUSE.PAN,
+        MIDDLE: THREE.MOUSE.DOLLY,
+        RIGHT: THREE.MOUSE.ROTATE,
+      }}
+      touches={{
+        ONE: THREE.TOUCH.PAN,
+        TWO: THREE.TOUCH.DOLLY_ROTATE,
+      }}
+      keyPanSpeed={25}
+      panSpeed={2.5}
+      zoomSpeed={1.6}
+      rotateSpeed={0.9}
+      minDistance={0.8}
+      maxDistance={600}
       maxPolarAngle={Math.PI * 0.92}
-      minPolarAngle={0.1}
+      minPolarAngle={0.05}
       dampingFactor={0.08}
       enableDamping
     />

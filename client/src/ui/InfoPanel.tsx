@@ -1,5 +1,7 @@
 import { useMemo, useEffect, useState } from "react";
 import { useAppStore } from "../data/store";
+import { useDraggable } from "./useDraggable";
+import { useCollapsible, CollapseButton } from "./useCollapsible";
 
 const STATUS_LABEL: Record<string, string> = {
   ok: "I tid",
@@ -20,6 +22,8 @@ export function InfoPanel() {
   const network = useAppStore((s) => s.network);
   const setSelected = useAppStore((s) => s.setSelectedTrain);
   const setFollow = useAppStore((s) => s.setFollowTrain);
+  const drag = useDraggable({ storageKey: "info-panel", defaultAnchor: { right: 20, top: 160 } });
+  const { collapsed, toggle } = useCollapsible("info-panel");
 
   const activeId = selectedTrainId || hoveredTrainId;
   const train = activeId ? trains.get(activeId) : null;
@@ -54,16 +58,16 @@ export function InfoPanel() {
 
   return (
     <div
+      ref={drag.ref as any}
       className="panel info-panel"
       style={{
-        position: "absolute",
-        right: 20,
-        top: 160,
         minWidth: 280,
         maxWidth: 320,
         pointerEvents: "auto",
         zIndex: 8,
+        ...drag.style,
       }}
+      {...drag.handlers}
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10 }}>
         <div>
@@ -81,20 +85,25 @@ export function InfoPanel() {
             Tåg {train.id.split("-").slice(-1)[0]}
           </div>
         </div>
-        <button
-          onClick={() => { setSelected(null); setFollow(null); }}
-          style={{
-            background: "transparent",
-            border: "1px solid rgba(255,255,255,0.14)",
-            color: "#8b98ad",
-            width: 26, height: 26, borderRadius: 6,
-            cursor: "pointer",
-            fontSize: 14,
-          }}
-          aria-label="Stäng"
-        >×</button>
+        <div style={{ display: "flex", gap: 4 }}>
+          <CollapseButton collapsed={collapsed} onToggle={toggle} />
+          <button
+            onClick={() => { setSelected(null); setFollow(null); }}
+            data-nodrag
+            style={{
+              background: "transparent",
+              border: "1px solid rgba(255,255,255,0.14)",
+              color: "#8b98ad",
+              width: 26, height: 26, borderRadius: 6,
+              cursor: "pointer",
+              fontSize: 14,
+            }}
+            aria-label="Stäng"
+          >×</button>
+        </div>
       </div>
 
+      {!collapsed && <>
       <div style={{ marginTop: 14, paddingTop: 12, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
         <div style={{ fontSize: 11, color: "#8b98ad", letterSpacing: 0.14, textTransform: "uppercase", marginBottom: 4 }}>
           {meta.dirLabel === "→" ? "Mot" : "Från"} riktning
@@ -175,6 +184,7 @@ export function InfoPanel() {
           >Följ tåget</button>
         </div>
       )}
+      </>}
     </div>
   );
 }

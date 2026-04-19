@@ -16,6 +16,14 @@ const LINE_HEX: Record<string, string> = {
   blue: "#39a7ff",
 };
 
+const MODE_HEX: Record<string, string> = {
+  subway: "#ffffff",
+  rail: "#ff9147",
+  lightrail: "#c99bff",
+  tram: "#ffde5a",
+  ferry: "#4cdadd",
+};
+
 export function Stations({ network, projection }: Props) {
   const setHovered = useAppStore((s) => s.setHoveredStation);
   const hovered = useAppStore((s) => s.hoveredStationId);
@@ -67,12 +75,17 @@ function StationMarker({ station, projection, hovered, selected, onHover, onClic
   const groupRef = useRef<THREE.Group>(null);
 
   const color = useMemo(() => {
-    if (station.lines.length > 1) return "#ffffff";
-    return LINE_HEX[station.lines[0]] ?? "#ffffff";
-  }, [station.lines]);
+    const lines = station.lines ?? [];
+    if (lines.length > 1) return "#ffffff";
+    if (lines.length === 1 && LINE_HEX[lines[0]]) return LINE_HEX[lines[0]];
+    return MODE_HEX[station.mode ?? "subway"] ?? "#ffffff";
+  }, [station.lines, station.mode]);
 
-  const isMajor = station.lines.length > 1 || station.depth > 25;
-  const baseScale = (isMajor ? 0.24 : 0.16) + (activity > 0 ? Math.min(activity, 4) * 0.04 : 0);
+  const linesLen = station.lines?.length ?? 0;
+  const isMajor = linesLen > 1 || station.depth > 25;
+  const isSubway = (station.mode ?? "subway") === "subway";
+  const modeScale = isSubway ? 1 : station.mode === "rail" ? 0.85 : station.mode === "ferry" ? 0.7 : 0.6;
+  const baseScale = ((isMajor ? 0.24 : 0.16) + (activity > 0 ? Math.min(activity, 4) * 0.04 : 0)) * modeScale;
 
   useFrame((state) => {
     const t = state.clock.elapsedTime;
@@ -86,7 +99,7 @@ function StationMarker({ station, projection, hovered, selected, onHover, onClic
       const baseOp = 0.12 + Math.max(0, Math.sin(t * 1.2 + station.lat * 2)) * 0.08 + activity * 0.02;
       mat.opacity = selected ? baseOp + 0.25 : baseOp;
     }
-    if (groupRef.current && station.lines.length > 1) {
+    if (groupRef.current && linesLen > 1) {
       groupRef.current.rotation.y = t * 0.3;
     }
   });
