@@ -22,6 +22,7 @@ interface TrainState {
 export function Trains({ projection }: Props) {
   const trainsMap = useAppStore((s) => s.trains);
   const hiddenLineIds = useAppStore((s) => s.hiddenLineIds);
+  const hiddenModes = useAppStore((s) => s.hiddenModes);
   const setFollow = useAppStore((s) => s.setFollowTrain);
   const followId = useAppStore((s) => s.followTrainId);
   const setHovered = useAppStore((s) => s.setHoveredTrain);
@@ -33,7 +34,7 @@ export function Trains({ projection }: Props) {
   useMemo(() => {
     const current = stateRef.current;
     for (const [id, t] of trainsMap) {
-      if (hiddenLineIds.has(t.lineId)) {
+      if (hiddenLineIds.has(t.lineId) || hiddenModes.has(t.mode ?? "")) {
         current.delete(id);
         continue;
       }
@@ -55,7 +56,7 @@ export function Trains({ projection }: Props) {
     for (const id of current.keys()) {
       if (!trainsMap.has(id)) current.delete(id);
     }
-  }, [trainsMap, projection, hiddenLineIds]);
+  }, [trainsMap, projection, hiddenLineIds, hiddenModes]);
 
   const trainGroup = useRef<THREE.Group>(null);
   const trailGroup = useRef<THREE.Group>(null);
@@ -132,6 +133,7 @@ function TrainMesh({
     mode === "rail" ? 1.15 :
     mode === "ferry" ? 1.0 :
     mode === "lightrail" ? 0.8 :
+    mode === "bus" ? 0.5 :
     0.65; // tram
 
   useFrame((s) => {

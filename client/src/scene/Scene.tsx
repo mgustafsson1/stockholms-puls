@@ -6,6 +6,7 @@ import { useAppStore } from "../data/store";
 import { createProjection } from "../data/projection";
 import { useNetworkCurves } from "../data/curves";
 import { CityBase } from "./CityBase";
+import { OsmTileLayer } from "./OsmTileLayer";
 import { TunnelNetwork } from "./TunnelNetwork";
 import { Stations } from "./Stations";
 import { StationLabels } from "./StationLabels";
@@ -46,6 +47,7 @@ export function Scene() {
       {network && projection && (
         <>
           <CityBase projection={projection} />
+          <OsmTileLayer network={network} projection={projection} />
           <TunnelNetwork curves={curves} />
           <FlowPulses curves={curves} />
           <Stations network={network} projection={projection} />

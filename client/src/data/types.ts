@@ -1,4 +1,4 @@
-export type Mode = "subway" | "rail" | "lightrail" | "tram" | "ferry";
+export type Mode = "subway" | "rail" | "lightrail" | "tram" | "ferry" | "bus";
 export type LineGroup = string;
 
 export interface Station {

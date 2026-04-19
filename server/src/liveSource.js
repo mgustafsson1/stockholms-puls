@@ -16,9 +16,9 @@ function loadTripMap(path) {
   }
 }
 
-const POLL_MS = 15_000;
+const POLL_MS = 30_000;
 const STATION_MATCH_METERS = 120;
-const STALE_TRAIN_MS = 90_000;
+const STALE_TRAIN_MS = 120_000;
 
 export function hasTrafiklabKey() {
   return !!(process.env.TRAFIKLAB_KEY || process.env.TRAFIKLAB_API_KEY);
@@ -58,11 +58,15 @@ export class LiveSource {
     this.lastError = null;
     this.lastFetchAt = 0;
 
-    this.pollVehicles().catch(() => {});
-    this.pollTripUpdates().catch(() => {});
-    this.vehicleHandle = setInterval(() => this.pollVehicles().catch(() => {}), POLL_MS);
-    this.tripsHandle = setInterval(() => this.pollTripUpdates().catch(() => {}), POLL_MS);
-    this.alertsHandle = setInterval(() => this.pollAlerts().catch(() => {}), POLL_MS * 2);
+    // Stagger start times so 9 regions don't all fire at the same second.
+    const jitter = Math.floor(Math.random() * POLL_MS);
+    setTimeout(() => {
+      this.pollVehicles().catch(() => {});
+      this.pollTripUpdates().catch(() => {});
+      this.vehicleHandle = setInterval(() => this.pollVehicles().catch(() => {}), POLL_MS);
+      this.tripsHandle = setInterval(() => this.pollTripUpdates().catch(() => {}), POLL_MS);
+      this.alertsHandle = setInterval(() => this.pollAlerts().catch(() => {}), POLL_MS * 4);
+    }, jitter);
     this.broadcastHandle = setInterval(() => this.emit(), 1000);
     this.pruneHandle = setInterval(() => this.prune(), 20_000);
   }
@@ -200,35 +204,75 @@ export class LiveSource {
       const lon = v.position.longitude;
       if (!lat || !lon) continue;
 
+      const tripId = v.trip?.tripId;
       let forcedLineId = null;
-      let mode = null;
-      if (usingTripMap) {
-        const tripId = v.trip?.tripId;
-        if (!tripId) continue;
-        const info = this.tripMap[tripId];
-        if (!info) continue;
-        forcedLineId = info.lineId;
-        mode = info.mode;
+      let tripInfo = null;
+      if (usingTripMap && tripId) {
+        tripInfo = this.tripMap[tripId] ?? null;
+        if (tripInfo && tripInfo.mode !== "bus") forcedLineId = tripInfo.lineId;
       }
 
-      const match = this.matchToSegment(lat, lon, forcedLineId, mode);
-      if (!match) continue;
-
-      const id = v.vehicle?.id || v.trip?.tripId || entity.id;
+      const id = v.vehicle?.id || tripId || entity.id;
       if (!id) continue;
-      const tripId = v.trip?.tripId;
+
       const delayEntry = tripId ? this.tripDelays.get(tripId) : null;
       const delay = delayEntry?.delay ?? 0;
-      const status = classifyStatus(v, delay);
 
-      const existing = this.trains.get(id);
-      const train = {
+      // Buses never match our rail segments — render at raw GPS.
+      if (tripInfo?.mode === "bus") {
+        this.trains.set(id, {
+          id,
+          lineId: tripInfo.lineId,
+          lineGroup: tripInfo.lineId,
+          mode: "bus",
+          color: tripInfo.color ?? "#7f88a0",
+          status: classifyStatus(v, delay),
+          delay,
+          direction: 1,
+          from: null,
+          to: null,
+          progress: 0,
+          atStation: false,
+          lat,
+          lon,
+          depth: 0,
+          lastUpdate: Date.now(),
+        });
+        continue;
+      }
+
+      const match = this.matchToSegment(lat, lon, forcedLineId, tripInfo?.mode);
+      if (!match) {
+        // No rail/tram/ferry segment match. Keep the vehicle as a bus-style
+        // dot so bus-only regions still show activity.
+        this.trains.set(id, {
+          id,
+          lineId: forcedLineId ?? "BUS",
+          lineGroup: forcedLineId ?? "BUS",
+          mode: "bus",
+          color: "#7f88a0",
+          status: classifyStatus(v, delay),
+          delay,
+          direction: 1,
+          from: null,
+          to: null,
+          progress: 0,
+          atStation: false,
+          lat,
+          lon,
+          depth: 0,
+          lastUpdate: Date.now(),
+        });
+        continue;
+      }
+
+      this.trains.set(id, {
         id,
         lineId: match.lineId,
         lineGroup: match.lineGroup,
         mode: match.mode,
         color: match.color,
-        status,
+        status: classifyStatus(v, delay),
         delay,
         direction: match.direction,
         from: match.fromId,
@@ -239,8 +283,7 @@ export class LiveSource {
         lon,
         depth: match.depth,
         lastUpdate: Date.now(),
-      };
-      this.trains.set(id, train);
+      });
     }
   }
 

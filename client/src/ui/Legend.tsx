@@ -58,7 +58,9 @@ export function Legend() {
   const drag = useDraggable({ storageKey: "legend", defaultAnchor: { right: 20, bottom: 20 } });
   const { collapsed, toggle } = useCollapsible("legend");
   const hidden = useAppStore((s) => s.hiddenLineIds);
+  const hiddenModes = useAppStore((s) => s.hiddenModes);
   const toggleLineGroup = useAppStore((s) => s.toggleLineGroup);
+  const toggleMode = useAppStore((s) => s.toggleMode);
   const regionId = useAppStore((s) => s.regionId);
   const network = useAppStore((s) => s.network);
 
@@ -66,6 +68,10 @@ export function Legend() {
     if (regionId === "stockholm") return STOCKHOLM_GROUPS;
     return network ? autoGroups(network.lines) : [];
   }, [regionId, network]);
+
+  const busOn = !hiddenModes.has("bus");
+  const showBasemap = useAppStore((s) => s.showBasemap);
+  const setShowBasemap = useAppStore((s) => s.setShowBasemap);
 
   return (
     <div ref={drag.ref as any} className="legend panel" style={drag.style} {...drag.handlers}>
@@ -114,6 +120,51 @@ export function Legend() {
       })}
       {!collapsed && (
         <>
+          <div style={{ height: 8, borderTop: "1px solid rgba(255,255,255,0.06)", marginTop: 8 }} />
+          <button
+            onClick={() => toggleMode("bus")}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              padding: "5px 4px",
+              width: "100%",
+              background: "transparent",
+              border: "none",
+              color: busOn ? "var(--ink)" : "#5a697f",
+              cursor: "pointer",
+              fontSize: 12,
+              textAlign: "left",
+              fontFamily: "inherit",
+              borderRadius: 4,
+            }}
+          >
+            <Toggle on={busOn} color="#7f88a0" />
+            <span style={{ width: 10, height: 10, borderRadius: 2, background: busOn ? "#7f88a0" : "#7f88a040", flexShrink: 0 }} />
+            <span style={{ flex: 1 }}>Bussar (alla linjer, som prickar)</span>
+          </button>
+          <button
+            onClick={() => setShowBasemap(!showBasemap)}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              padding: "5px 4px",
+              width: "100%",
+              background: "transparent",
+              border: "none",
+              color: showBasemap ? "var(--ink)" : "#5a697f",
+              cursor: "pointer",
+              fontSize: 12,
+              textAlign: "left",
+              fontFamily: "inherit",
+              borderRadius: 4,
+            }}
+          >
+            <Toggle on={showBasemap} color="#6ba3d9" />
+            <span style={{ width: 10, height: 10, borderRadius: 2, background: showBasemap ? "#6ba3d9" : "#6ba3d940", flexShrink: 0 }} />
+            <span style={{ flex: 1 }}>OpenStreetMap-karta (CartoDB Dark)</span>
+          </button>
           <div style={{ height: 10 }} />
           <div className="legend-row"><span className="swatch" style={{ background: "#ffffff", color: "#ffffff" }} />I tid</div>
           <div className="legend-row"><span className="swatch" style={{ background: "#ffc04a", color: "#ffc04a" }} />Försenat</div>

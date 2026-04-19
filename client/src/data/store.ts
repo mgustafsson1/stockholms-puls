@@ -2,6 +2,7 @@ import { create } from "zustand";
 import type { AIAnalysis, Alert, CameraMode, Network, Snapshot, Train } from "./types";
 
 const HIDDEN_LINES_KEY = "sl:hidden-line-ids";
+const HIDDEN_MODES_KEY = "sl:hidden-modes";
 
 function loadHiddenLineIds(): Set<string> {
   try {
@@ -16,6 +17,24 @@ function loadHiddenLineIds(): Set<string> {
 function saveHiddenLineIds(ids: Set<string>) {
   try {
     localStorage.setItem(HIDDEN_LINES_KEY, JSON.stringify(Array.from(ids)));
+  } catch {}
+}
+
+function loadHiddenModes(): Set<string> {
+  try {
+    const raw = typeof localStorage !== "undefined" ? localStorage.getItem(HIDDEN_MODES_KEY) : null;
+    if (raw) {
+      const arr = JSON.parse(raw);
+      if (Array.isArray(arr)) return new Set(arr.filter((x): x is string => typeof x === "string"));
+    }
+  } catch {}
+  // Default: buses off so they don't dominate the rail-focused view.
+  return new Set(["bus"]);
+}
+
+function saveHiddenModes(modes: Set<string>) {
+  try {
+    localStorage.setItem(HIDDEN_MODES_KEY, JSON.stringify(Array.from(modes)));
   } catch {}
 }
 
@@ -37,12 +56,16 @@ interface AppState {
   aiError: string | null;
   aiEnabled: boolean;
   hiddenLineIds: Set<string>;
+  hiddenModes: Set<string>;
+  showBasemap: boolean;
   regions: { id: string; label: string }[];
   regionId: string;
 
   setNetwork: (n: Network) => void;
   setHiddenLineIds: (ids: Set<string>) => void;
   toggleLineGroup: (lineIds: string[]) => void;
+  toggleMode: (mode: string) => void;
+  setShowBasemap: (v: boolean) => void;
   setRegions: (list: { id: string; label: string }[]) => void;
   setRegionId: (id: string) => void;
   applySnapshot: (snap: Snapshot) => void;
@@ -77,6 +100,10 @@ export const useAppStore = create<AppState>((set) => ({
   aiError: null,
   aiEnabled: false,
   hiddenLineIds: loadHiddenLineIds(),
+  hiddenModes: loadHiddenModes(),
+  showBasemap: (() => {
+    try { return (typeof localStorage !== "undefined" ? localStorage.getItem("sl:basemap") : null) === "true"; } catch { return false; }
+  })(),
   regions: [],
   regionId: (typeof localStorage !== "undefined" && localStorage.getItem("sl:region")) || "stockholm",
 
@@ -101,6 +128,17 @@ export const useAppStore = create<AppState>((set) => ({
     }
     saveHiddenLineIds(next);
     set({ hiddenLineIds: next });
+  },
+  toggleMode: (mode) => {
+    const current = useAppStore.getState().hiddenModes;
+    const next = new Set(current);
+    if (next.has(mode)) next.delete(mode); else next.add(mode);
+    saveHiddenModes(next);
+    set({ hiddenModes: next });
+  },
+  setShowBasemap: (v) => {
+    try { localStorage.setItem("sl:basemap", String(v)); } catch {}
+    set({ showBasemap: v });
   },
   applySnapshot: (snap) => {
     const trains = new Map<string, Train>();

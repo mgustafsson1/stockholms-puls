@@ -17,7 +17,9 @@ export function TrainLabels({ projection }: Props) {
   const showLabels = useAppStore((s) => s.showLabels);
 
   const trainArr = useMemo(
-    () => Array.from(trains.values()).filter((t) => !hiddenLineIds.has(t.lineId)),
+    () => Array.from(trains.values()).filter(
+      (t) => !hiddenLineIds.has(t.lineId) && t.mode !== "bus"
+    ),
     [trains, hiddenLineIds]
   );
 

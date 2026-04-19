@@ -53,7 +53,7 @@ export default function App() {
         >
           {showLabels ? "Dölj etiketter" : "Visa etiketter"}
         </button>
-        <div className="footer" style={{ bottom: 60 }}>Data via Trafiklab GTFS-RT · Simulator vid saknad nyckel · {network?.stations.length ?? "—"} stationer</div>
+        <div className="footer" style={{ bottom: 60 }}>Data via Trafiklab GTFS-RT · Karta © OpenStreetMap · CartoDB · {network?.stations.length ?? "—"} stationer</div>
       </div>
       {!network && (
         <div className="loading">
