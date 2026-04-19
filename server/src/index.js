@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 
 import { Simulator } from "./simulator.js";
-import { hasTrafiklabKey } from "./trafiklab.js";
+import { LiveSource, hasTrafiklabKey } from "./liveSource.js";
 import { AIAnalyst } from "./aiAnalyst.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -35,33 +35,38 @@ app.get("/api/network", (_req, res) => {
 });
 
 app.get("/api/status", (_req, res) => {
+  const snap = source.snapshot();
   res.json({
     status: "ok",
     source: hasTrafiklabKey() ? "trafiklab-gtfs-rt" : "simulator",
-    trains: simulator.trains.length,
-    alerts: simulator.alerts.length,
-    uptime: Date.now() - simulator.startTime,
+    trains: snap.trains.length,
+    alerts: snap.alerts.length,
+    uptime: Date.now() - startTime,
   });
 });
 
 const server = createServer(app);
 const wss = new WebSocketServer({ server, path: "/stream" });
 
-const simulator = new Simulator(network);
+const startTime = Date.now();
+const source = hasTrafiklabKey()
+  ? new LiveSource(network)
+  : new Simulator(network);
+
 const aiAnalyst = new AIAnalyst({
-  getSnapshot: () => simulator.snapshot(),
+  getSnapshot: () => source.snapshot(),
   network,
   intervalMs: Number(process.env.AI_INTERVAL_MS ?? 90_000),
 });
 
 wss.on("connection", (ws) => {
   ws.send(JSON.stringify({ type: "hello", source: hasTrafiklabKey() ? "trafiklab" : "simulator", aiEnabled: !!aiAnalyst.apiKey }));
-  ws.send(JSON.stringify({ type: "snapshot", data: simulator.snapshot() }));
+  ws.send(JSON.stringify({ type: "snapshot", data: source.snapshot() }));
   if (aiAnalyst.latest) {
     ws.send(JSON.stringify({ type: "ai", data: { latest: aiAnalyst.latest, error: aiAnalyst.lastError } }));
   }
 
-  const unsubscribe = simulator.on((snap) => {
+  const unsubscribe = source.on((snap) => {
     if (ws.readyState === ws.OPEN) {
       ws.send(JSON.stringify({ type: "snapshot", data: snap }));
     }
@@ -84,7 +89,7 @@ server.listen(PORT, () => {
 });
 
 process.on("SIGINT", () => {
-  simulator.stop();
+  source.stop();
   aiAnalyst.stop();
   server.close(() => process.exit(0));
 });

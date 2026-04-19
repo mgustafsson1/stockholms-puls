@@ -1,0 +1,374 @@
+import { haversine } from "./geo.js";
+import gtfsBindings from "gtfs-realtime-bindings";
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { dirname, resolve } from "node:path";
+
+const { transit_realtime } = gtfsBindings;
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const TRIP_MAP_PATH = resolve(__dirname, "../data/subway-trips.json");
+let TRIP_TO_LINE = {};
+try {
+  TRIP_TO_LINE = JSON.parse(readFileSync(TRIP_MAP_PATH, "utf8"));
+  console.log(`[live] loaded ${Object.keys(TRIP_TO_LINE).length} subway trip→line mappings`);
+} catch {
+  console.warn("[live] subway-trips.json missing — falling back to geographic filter only");
+}
+
+const GTFS_RT_VEHICLE_URL =
+  "https://opendata.samtrafiken.se/gtfs-rt-sweden/sl/VehiclePositionsSweden.pb";
+const GTFS_RT_TRIPS_URL =
+  "https://opendata.samtrafiken.se/gtfs-rt-sweden/sl/TripUpdatesSweden.pb";
+const GTFS_RT_ALERTS_URL =
+  "https://opendata.samtrafiken.se/gtfs-rt-sweden/sl/ServiceAlertsSweden.pb";
+
+const POLL_MS = 15_000;
+const MAX_MATCH_METERS = 400;
+const STATION_MATCH_METERS = 120;
+const STALE_TRAIN_MS = 90_000;
+
+export function hasTrafiklabKey() {
+  return !!(process.env.TRAFIKLAB_KEY || process.env.TRAFIKLAB_API_KEY);
+}
+
+function getKey() {
+  return process.env.TRAFIKLAB_KEY || process.env.TRAFIKLAB_API_KEY;
+}
+
+export class LiveSource {
+  constructor(network) {
+    this.network = network;
+    this.stationById = new Map(network.stations.map((s) => [s.id, s]));
+    this.segments = buildSegments(network);
+    this.trains = new Map();
+    this.alerts = [];
+    this.tripDelays = new Map();
+    this.listeners = new Set();
+    this.startTime = Date.now();
+    this.lastError = null;
+    this.lastFetchAt = 0;
+
+    this.pollVehicles().catch(() => {});
+    this.pollTripUpdates().catch(() => {});
+    this.vehicleHandle = setInterval(() => this.pollVehicles().catch(() => {}), POLL_MS);
+    this.tripsHandle = setInterval(() => this.pollTripUpdates().catch(() => {}), POLL_MS);
+    this.alertsHandle = setInterval(() => this.pollAlerts().catch(() => {}), POLL_MS * 2);
+    this.broadcastHandle = setInterval(() => this.emit(), 1000);
+    this.pruneHandle = setInterval(() => this.prune(), 20_000);
+  }
+
+  on(fn) {
+    this.listeners.add(fn);
+    return () => this.listeners.delete(fn);
+  }
+
+  stop() {
+    clearInterval(this.vehicleHandle);
+    clearInterval(this.tripsHandle);
+    clearInterval(this.alertsHandle);
+    clearInterval(this.broadcastHandle);
+    clearInterval(this.pruneHandle);
+  }
+
+  async pollTripUpdates() {
+    const key = getKey();
+    if (!key) return;
+    try {
+      const res = await fetch(`${GTFS_RT_TRIPS_URL}?key=${key}`, {
+        headers: { "Accept-Encoding": "gzip, deflate" },
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const buf = Buffer.from(await res.arrayBuffer());
+      const feed = transit_realtime.FeedMessage.decode(buf);
+
+      const updates = new Map();
+      const nowSec = Date.now() / 1000;
+      for (const e of feed.entity) {
+        const tu = e.tripUpdate;
+        if (!tu?.trip?.tripId) continue;
+        const tripId = tu.trip.tripId;
+        if (Object.keys(TRIP_TO_LINE).length && !TRIP_TO_LINE[tripId]) continue;
+
+        // Skip canceled / duplicated / deleted trips.
+        const rel = tu.trip.scheduleRelationship;
+        if (rel === 3 || rel === 4 || rel === 5) continue;
+
+        // Pick delay at the NEXT stop (smallest stopSequence among non-skipped).
+        const stus = (tu.stopTimeUpdate ?? []).filter(
+          (s) => s.scheduleRelationship !== 1,
+        );
+        if (!stus.length) continue;
+
+        let next = stus[0];
+        for (const s of stus) {
+          if ((s.stopSequence ?? 0) < (next.stopSequence ?? 0)) next = s;
+        }
+
+        // If the next stop's predicted time is well in the past, the trip is done.
+        const nextTime = Number(next.arrival?.time ?? next.departure?.time ?? 0);
+        if (nextTime && nextTime < nowSec - 120) continue;
+
+        const delay = Number(next.arrival?.delay ?? next.departure?.delay ?? 0);
+        const nextStopSeq = next.stopSequence ?? null;
+        updates.set(tripId, { delay, nextStopSeq, updatedAt: Date.now() });
+      }
+      this.tripDelays = updates;
+    } catch (err) {
+      console.warn("[live] trip updates failed:", err.message);
+    }
+  }
+
+  async pollVehicles() {
+    const key = getKey();
+    if (!key) return;
+    try {
+      const res = await fetch(`${GTFS_RT_VEHICLE_URL}?key=${key}`, {
+        headers: { "Accept-Encoding": "gzip, deflate" },
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const buf = Buffer.from(await res.arrayBuffer());
+      const feed = transit_realtime.FeedMessage.decode(buf);
+      this.lastFetchAt = Date.now();
+      this.updateFromFeed(feed);
+      this.lastError = null;
+    } catch (err) {
+      this.lastError = err.message;
+      console.warn("[live] vehicle fetch failed:", err.message);
+    }
+  }
+
+  async pollAlerts() {
+    const key = getKey();
+    if (!key) return;
+    try {
+      const res = await fetch(`${GTFS_RT_ALERTS_URL}?key=${key}`, {
+        headers: { "Accept-Encoding": "gzip, deflate" },
+      });
+      if (!res.ok) return;
+      const buf = Buffer.from(await res.arrayBuffer());
+      const feed = transit_realtime.FeedMessage.decode(buf);
+      const out = [];
+      for (const e of feed.entity) {
+        if (!e.alert) continue;
+        const header = (e.alert.headerText?.translation ?? [])[0]?.text ?? "Trafikstörning";
+        const desc = (e.alert.descriptionText?.translation ?? [])[0]?.text ?? "";
+        const affected = e.alert.informedEntity ?? [];
+        let stationId = null;
+        let stationName = "";
+        for (const ie of affected) {
+          if (ie.stopId) {
+            const match = findStationByStopId(this.network, ie.stopId);
+            if (match) {
+              stationId = match.id;
+              stationName = match.name;
+              break;
+            }
+          }
+        }
+        if (!stationId) continue;
+        out.push({
+          id: e.id,
+          stationId,
+          stationName,
+          message: header || desc.slice(0, 80),
+          createdAt: Date.now(),
+          durationMs: 5 * 60_000,
+        });
+      }
+      this.alerts = out;
+    } catch (err) {
+      // silent
+    }
+  }
+
+  updateFromFeed(feed) {
+    const usingTripMap = Object.keys(TRIP_TO_LINE).length > 0;
+    for (const entity of feed.entity) {
+      const v = entity.vehicle;
+      if (!v?.position) continue;
+      const lat = v.position.latitude;
+      const lon = v.position.longitude;
+      if (!lat || !lon) continue;
+
+      let forcedLineId = null;
+      if (usingTripMap) {
+        const tripId = v.trip?.tripId;
+        if (!tripId) continue;
+        forcedLineId = TRIP_TO_LINE[tripId];
+        if (!forcedLineId) continue;
+      }
+
+      const match = this.matchToSegment(lat, lon, forcedLineId);
+      if (!match) continue;
+
+      const id = v.vehicle?.id || v.trip?.tripId || entity.id;
+      if (!id) continue;
+      const tripId = v.trip?.tripId;
+      const delayEntry = tripId ? this.tripDelays.get(tripId) : null;
+      const delay = delayEntry?.delay ?? 0;
+      const status = classifyStatus(v, delay);
+
+      const existing = this.trains.get(id);
+      const train = {
+        id,
+        lineId: match.lineId,
+        lineGroup: match.lineGroup,
+        color: match.color,
+        status,
+        delay,
+        direction: match.direction,
+        from: match.fromId,
+        to: match.toId,
+        progress: match.progress,
+        atStation: match.progress < 0.05,
+        lat,
+        lon,
+        depth: match.depth,
+        lastUpdate: Date.now(),
+      };
+      this.trains.set(id, train);
+    }
+  }
+
+  matchToSegment(lat, lon, forcedLineId) {
+    let best = null;
+    const maxMeters = forcedLineId ? 600 : MAX_MATCH_METERS;
+    for (const seg of this.segments) {
+      if (forcedLineId && seg.lineId !== forcedLineId) continue;
+      const info = projectOntoSegment(lat, lon, seg);
+      if (info.distanceM > maxMeters) continue;
+      if (!best || info.distanceM < best.distanceM) {
+        best = { ...info, seg };
+      }
+    }
+    if (!best) return null;
+    const { seg } = best;
+    const a = seg.a;
+    const b = seg.b;
+    const depth = a.depth + (b.depth - a.depth) * best.progress;
+    return {
+      lineId: seg.lineId,
+      lineGroup: seg.lineGroup,
+      color: seg.color,
+      direction: seg.direction,
+      fromId: a.id,
+      toId: b.id,
+      progress: best.progress,
+      depth,
+    };
+  }
+
+  prune() {
+    const cutoff = Date.now() - STALE_TRAIN_MS;
+    for (const [id, t] of this.trains) {
+      if (t.lastUpdate < cutoff) this.trains.delete(id);
+    }
+  }
+
+  snapshot() {
+    const trains = [];
+    for (const t of this.trains.values()) {
+      trains.push({
+        id: t.id,
+        lineId: t.lineId,
+        lineGroup: t.lineGroup,
+        color: t.color,
+        status: t.status,
+        delay: t.delay,
+        direction: t.direction,
+        from: t.from,
+        to: t.to,
+        progress: t.progress,
+        atStation: t.atStation,
+        lat: t.lat,
+        lon: t.lon,
+        depth: t.depth,
+      });
+    }
+    return {
+      t: Date.now(),
+      trains,
+      alerts: this.alerts.slice(),
+    };
+  }
+
+  emit() {
+    const snap = this.snapshot();
+    for (const fn of this.listeners) {
+      try { fn(snap); } catch {}
+    }
+  }
+}
+
+function classifyStatus(v, delaySec = 0) {
+  const ts = v.timestamp ? Number(v.timestamp) * 1000 : 0;
+  const age = ts ? (Date.now() - ts) / 1000 : 0;
+  if (age > 180) return "stopped";
+  if (delaySec >= 300) return "stopped";
+  if (delaySec >= 60) return "delayed";
+  return "ok";
+}
+
+function buildSegments(network) {
+  const byId = new Map(network.stations.map((s) => [s.id, s]));
+  const out = [];
+  for (const line of network.lines) {
+    for (let i = 0; i < line.stations.length - 1; i++) {
+      const a = byId.get(line.stations[i]);
+      const b = byId.get(line.stations[i + 1]);
+      if (!a || !b) continue;
+      out.push({
+        lineId: line.id,
+        lineGroup: line.line,
+        color: line.color,
+        direction: 1,
+        a, b,
+      });
+      out.push({
+        lineId: line.id,
+        lineGroup: line.line,
+        color: line.color,
+        direction: -1,
+        a: b, b: a,
+      });
+    }
+  }
+  return out;
+}
+
+function projectOntoSegment(lat, lon, seg) {
+  // Approximate to planar. Haversine-based.
+  const degLat = 110574;
+  const degLon = 111320 * Math.cos((seg.a.lat * Math.PI) / 180);
+  const ax = (seg.a.lon * degLon);
+  const ay = (seg.a.lat * degLat);
+  const bx = (seg.b.lon * degLon);
+  const by = (seg.b.lat * degLat);
+  const px = (lon * degLon);
+  const py = (lat * degLat);
+  const abx = bx - ax;
+  const aby = by - ay;
+  const lenSq = abx * abx + aby * aby;
+  if (lenSq < 1) {
+    const d = haversine({ lat, lon }, seg.a);
+    return { progress: 0, distanceM: d };
+  }
+  let t = ((px - ax) * abx + (py - ay) * aby) / lenSq;
+  t = Math.max(0, Math.min(1, t));
+  const projX = ax + t * abx;
+  const projY = ay + t * aby;
+  const dx = px - projX;
+  const dy = py - projY;
+  const distanceM = Math.sqrt(dx * dx + dy * dy);
+  return { progress: t, distanceM };
+}
+
+function findStationByStopId(network, stopId) {
+  // stopId from GTFS-RT may not match our station ids; try last-5-digit match
+  const suffix = String(stopId).slice(-5);
+  for (const s of network.stations) {
+    // Not reliable without stop_id mapping; skip for now
+  }
+  return null;
+}

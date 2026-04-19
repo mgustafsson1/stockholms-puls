@@ -135,8 +135,21 @@ export function computeStationBoard(
     });
   }
 
-  entries.sort((a, b) => a.etaSeconds - b.etaSeconds);
-  return entries;
+  // Cap per line+terminus (i.e. per direction) so we never show unrealistic queues.
+  const grouped = new Map<string, BoardEntry[]>();
+  for (const e of entries) {
+    const key = `${e.lineId}|${e.terminusId}`;
+    const arr = grouped.get(key);
+    if (arr) arr.push(e);
+    else grouped.set(key, [e]);
+  }
+  const capped: BoardEntry[] = [];
+  for (const arr of grouped.values()) {
+    arr.sort((a, b) => a.etaSeconds - b.etaSeconds);
+    capped.push(...arr.slice(0, 3));
+  }
+  capped.sort((a, b) => a.etaSeconds - b.etaSeconds);
+  return capped;
 }
 
 export function formatEta(seconds: number): string {
