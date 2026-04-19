@@ -10,15 +10,70 @@ import { Simulator } from "./simulator.js";
 import { LiveSource, hasTrafiklabKey } from "./liveSource.js";
 import { AIAnalyst } from "./aiAnalyst.js";
 import { TrendRecorder } from "./trendRecorder.js";
+import { REGIONS } from "./regions.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const NETWORK_PATH = resolve(__dirname, "../data/network.json");
-const network = JSON.parse(readFileSync(NETWORK_PATH, "utf8"));
+const DEFAULT_REGION = "stockholm";
+const AI_REGION = "stockholm"; // AI analyst scoped to one region to keep LLM cost sane
+
+function loadRegionData(regionId) {
+  const networkPath = resolve(__dirname, `../data/regions/${regionId}/network.json`);
+  const tripMapPath = resolve(__dirname, `../data/regions/${regionId}/trip-lines.json`);
+  const network = JSON.parse(readFileSync(networkPath, "utf8"));
+  return { network, tripMapPath };
+}
 
 const PORT = Number(process.env.PORT ?? 4000);
 const app = express();
 app.use(cors());
 app.use(express.json({ limit: "10mb" }));
+
+const startTime = Date.now();
+const usingLive = hasTrafiklabKey();
+
+// Build one source per region (live or simulator).
+const sources = new Map();
+const networks = new Map();
+for (const region of REGIONS) {
+  try {
+    const { network, tripMapPath } = loadRegionData(region.id);
+    networks.set(region.id, network);
+    const source = usingLive
+      ? new LiveSource(network, {
+          regionId: region.id,
+          label: region.label,
+          operator: region.operator,
+          tripMapPath: region.useTripMap === false ? null : tripMapPath,
+          maxMatchMeters: region.matchMaxMeters,
+          maxMatchMetersForced: region.matchMaxMetersForced,
+          ferryMaxMeters: region.ferryMaxMeters,
+        })
+      : new Simulator(network);
+    sources.set(region.id, source);
+    console.log(`[region:${region.id}] ${region.label} — ${network.lines.length} lines, ${network.stations.length} stations`);
+  } catch (err) {
+    console.warn(`[region:${region.id}] skipped (${err.message})`);
+  }
+}
+if (!sources.has(DEFAULT_REGION)) {
+  console.error(`Default region "${DEFAULT_REGION}" unavailable.`);
+  process.exit(1);
+}
+
+const aiAnalyst = new AIAnalyst({
+  getSnapshot: () => sources.get(AI_REGION).snapshot(),
+  network: networks.get(AI_REGION),
+  intervalMs: Number(process.env.AI_INTERVAL_MS ?? 90_000),
+});
+
+const trendRecorders = new Map();
+for (const [id, source] of sources) {
+  trendRecorders.set(id, new TrendRecorder({
+    getSnapshot: () => source.snapshot(),
+    intervalMs: Number(process.env.TREND_INTERVAL_MS ?? 30_000),
+    maxSamples: 120,
+  }));
+}
 
 app.post("/api/_snapshot", async (req, res) => {
   const { data, name } = req.body ?? {};
@@ -31,77 +86,114 @@ app.post("/api/_snapshot", async (req, res) => {
   res.json({ ok: true, file });
 });
 
-app.get("/api/network", (_req, res) => {
+app.get("/api/regions", (_req, res) => {
+  res.json({
+    defaultRegion: DEFAULT_REGION,
+    regions: REGIONS
+      .filter((r) => sources.has(r.id))
+      .map((r) => ({
+        id: r.id,
+        label: r.label,
+        operator: r.operator,
+        origin: r.origin,
+      })),
+  });
+});
+
+app.get("/api/network", (req, res) => {
+  const regionId = String(req.query.region || DEFAULT_REGION);
+  const network = networks.get(regionId);
+  if (!network) return res.status(404).json({ error: "unknown region" });
   res.json(network);
 });
 
 app.get("/api/status", (_req, res) => {
-  const snap = source.snapshot();
+  const perRegion = {};
+  for (const [id, source] of sources) {
+    const snap = source.snapshot();
+    perRegion[id] = { trains: snap.trains.length, alerts: snap.alerts.length };
+  }
   res.json({
     status: "ok",
-    source: hasTrafiklabKey() ? "trafiklab-gtfs-rt" : "simulator",
-    trains: snap.trains.length,
-    alerts: snap.alerts.length,
+    source: usingLive ? "trafiklab-gtfs-rt" : "simulator",
+    regions: perRegion,
     uptime: Date.now() - startTime,
   });
+});
+
+app.get("/api/trends", (req, res) => {
+  const regionId = String(req.query.region || DEFAULT_REGION);
+  const rec = trendRecorders.get(regionId);
+  if (!rec) return res.status(404).json({ error: "unknown region" });
+  res.json(rec.snapshot());
 });
 
 const server = createServer(app);
 const wss = new WebSocketServer({ server, path: "/stream" });
 
-const startTime = Date.now();
-const source = hasTrafiklabKey()
-  ? new LiveSource(network)
-  : new Simulator(network);
-
-const aiAnalyst = new AIAnalyst({
-  getSnapshot: () => source.snapshot(),
-  network,
-  intervalMs: Number(process.env.AI_INTERVAL_MS ?? 90_000),
-});
-
-const trendRecorder = new TrendRecorder({
-  getSnapshot: () => source.snapshot(),
-  intervalMs: Number(process.env.TREND_INTERVAL_MS ?? 30_000),
-  maxSamples: 120,
-});
-
-app.get("/api/trends", (_req, res) => {
-  res.json(trendRecorder.snapshot());
-});
-
 wss.on("connection", (ws) => {
-  ws.send(JSON.stringify({ type: "hello", source: hasTrafiklabKey() ? "trafiklab" : "simulator", aiEnabled: !!aiAnalyst.apiKey }));
-  ws.send(JSON.stringify({ type: "snapshot", data: source.snapshot() }));
+  let currentRegion = DEFAULT_REGION;
+  let unsubscribe = null;
+
+  function subscribe(regionId) {
+    if (!sources.has(regionId)) return;
+    if (unsubscribe) unsubscribe();
+    currentRegion = regionId;
+    const source = sources.get(regionId);
+    if (ws.readyState === ws.OPEN) {
+      ws.send(JSON.stringify({ type: "region", region: regionId }));
+      ws.send(JSON.stringify({ type: "snapshot", region: regionId, data: source.snapshot() }));
+    }
+    unsubscribe = source.on((snap) => {
+      if (ws.readyState === ws.OPEN) {
+        ws.send(JSON.stringify({ type: "snapshot", region: regionId, data: snap }));
+      }
+    });
+  }
+
+  ws.send(JSON.stringify({
+    type: "hello",
+    source: usingLive ? "trafiklab" : "simulator",
+    aiEnabled: !!aiAnalyst.apiKey,
+    regions: REGIONS.filter((r) => sources.has(r.id)).map((r) => ({ id: r.id, label: r.label })),
+    defaultRegion: DEFAULT_REGION,
+  }));
+  subscribe(DEFAULT_REGION);
+
   if (aiAnalyst.latest) {
     ws.send(JSON.stringify({ type: "ai", data: { latest: aiAnalyst.latest, error: aiAnalyst.lastError } }));
   }
 
-  const unsubscribe = source.on((snap) => {
-    if (ws.readyState === ws.OPEN) {
-      ws.send(JSON.stringify({ type: "snapshot", data: snap }));
-    }
-  });
   const unsubscribeAI = aiAnalyst.on((payload) => {
     if (ws.readyState === ws.OPEN) {
       ws.send(JSON.stringify({ type: "ai", data: payload }));
     }
   });
 
+  ws.on("message", (raw) => {
+    try {
+      const msg = JSON.parse(raw.toString());
+      if (msg.type === "set-region" && typeof msg.region === "string" && sources.has(msg.region)) {
+        subscribe(msg.region);
+      }
+    } catch {}
+  });
+
   ws.on("close", () => {
-    unsubscribe();
+    if (unsubscribe) unsubscribe();
     unsubscribeAI();
   });
 });
 
 server.listen(PORT, () => {
   console.log(`[stockholms-puls] server on http://localhost:${PORT}`);
-  console.log(`[stockholms-puls] data source: ${hasTrafiklabKey() ? "Trafiklab GTFS-RT" : "simulator (set TRAFIKLAB_KEY for live data)"}`);
+  console.log(`[stockholms-puls] data source: ${usingLive ? "Trafiklab GTFS-RT" : "simulator (set TRAFIKLAB_KEY for live data)"}`);
+  console.log(`[stockholms-puls] regions: ${[...sources.keys()].join(", ")}`);
 });
 
 process.on("SIGINT", () => {
-  source.stop();
+  for (const src of sources.values()) src.stop();
   aiAnalyst.stop();
-  trendRecorder.stop();
+  for (const rec of trendRecorders.values()) rec.stop();
   server.close(() => process.exit(0));
 });

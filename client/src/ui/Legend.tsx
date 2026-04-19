@@ -1,6 +1,8 @@
+import { useMemo } from "react";
 import { useDraggable } from "./useDraggable";
 import { useCollapsible, CollapseButton } from "./useCollapsible";
 import { useAppStore } from "../data/store";
+import type { Line, Mode } from "../data/types";
 
 interface Group {
   id: string;
@@ -9,7 +11,9 @@ interface Group {
   lineIds: string[];
 }
 
-const GROUPS: Group[] = [
+// Curated groups for Stockholm keep the existing labels; otherwise we fall
+// back to automatic mode-based groups derived from the active network.
+const STOCKHOLM_GROUPS: Group[] = [
   { id: "subway-red",   label: "T-bana röd (T13/T14)",       color: "#ff3d4a", lineIds: ["T13", "T14"] },
   { id: "subway-green", label: "T-bana grön (T17/T18/T19)",  color: "#4bd582", lineIds: ["T17", "T18", "T19"] },
   { id: "subway-blue",  label: "T-bana blå (T10/T11)",       color: "#39a7ff", lineIds: ["T10", "T11"] },
@@ -21,11 +25,47 @@ const GROUPS: Group[] = [
   { id: "ferry",        label: "Pendelbåt (B80/B84/B89)",    color: "#24d4d4", lineIds: ["B80", "B80X", "B84", "B89"] },
 ];
 
+const MODE_INFO: Record<Mode, { label: string; color: string }> = {
+  subway:    { label: "Tunnelbana", color: "#39a7ff" },
+  rail:      { label: "Pendel/regionaltåg", color: "#ff7a1f" },
+  lightrail: { label: "Spårväg & lokalbanor", color: "#b084ff" },
+  tram:      { label: "Spårvagn", color: "#f4c430" },
+  ferry:     { label: "Pendelbåt", color: "#24d4d4" },
+};
+
+function autoGroups(lines: Line[]): Group[] {
+  const byMode = new Map<Mode, Line[]>();
+  for (const line of lines) {
+    const m = (line.mode ?? "subway") as Mode;
+    const arr = byMode.get(m) ?? [];
+    arr.push(line);
+    byMode.set(m, arr);
+  }
+  const order: Mode[] = ["subway", "rail", "lightrail", "tram", "ferry"];
+  const out: Group[] = [];
+  for (const m of order) {
+    const arr = byMode.get(m);
+    if (!arr?.length) continue;
+    const info = MODE_INFO[m];
+    const ids = arr.map((l) => l.id);
+    const preview = ids.slice(0, 4).join(", ") + (ids.length > 4 ? "…" : "");
+    out.push({ id: `auto-${m}`, label: `${info.label} (${preview})`, color: info.color, lineIds: ids });
+  }
+  return out;
+}
+
 export function Legend() {
   const drag = useDraggable({ storageKey: "legend", defaultAnchor: { right: 20, bottom: 20 } });
   const { collapsed, toggle } = useCollapsible("legend");
   const hidden = useAppStore((s) => s.hiddenLineIds);
   const toggleLineGroup = useAppStore((s) => s.toggleLineGroup);
+  const regionId = useAppStore((s) => s.regionId);
+  const network = useAppStore((s) => s.network);
+
+  const groups = useMemo(() => {
+    if (regionId === "stockholm") return STOCKHOLM_GROUPS;
+    return network ? autoGroups(network.lines) : [];
+  }, [regionId, network]);
 
   return (
     <div ref={drag.ref as any} className="legend panel" style={drag.style} {...drag.handlers}>
@@ -34,7 +74,7 @@ export function Legend() {
         <CollapseButton collapsed={collapsed} onToggle={toggle} size={22} />
       </div>
       {!collapsed && <div style={{ height: 10 }} />}
-      {!collapsed && GROUPS.map((g) => {
+      {!collapsed && groups.map((g) => {
         const isOn = !g.lineIds.every((id) => hidden.has(id));
         return (
           <button
@@ -80,7 +120,7 @@ export function Legend() {
           <div className="legend-row"><span className="swatch" style={{ background: "#ff3030", color: "#ff3030" }} />Stillastående</div>
           <div style={{ height: 10 }} />
           <div style={{ fontSize: 10.5, color: "#8b98ad", lineHeight: 1.4 }}>
-            Klicka i listan för att visa/dölja linjer. T-bana under mark, övriga på marknivå. Horisontell skala 1:300.
+            Klicka i listan för att visa/dölja linjer. Byt region i toppen.
           </div>
         </>
       )}

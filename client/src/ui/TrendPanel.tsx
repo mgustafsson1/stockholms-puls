@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useDraggable } from "./useDraggable";
 import { useCollapsible, CollapseButton } from "./useCollapsible";
+import { useAppStore } from "../data/store";
 
 type Metric = "avgDelay" | "delayed" | "stopped" | "punctuality";
 
@@ -50,16 +51,18 @@ const METRICS: { id: Metric; label: string; unit: string }[] = [
 export function TrendPanel() {
   const drag = useDraggable({ storageKey: "trend-panel", defaultAnchor: { right: 20, top: 180 } });
   const { collapsed, toggle } = useCollapsible("trend-panel");
+  const regionId = useAppStore((s) => s.regionId);
   const [data, setData] = useState<TrendsResponse | null>(null);
   const [metric, setMetric] = useState<Metric>("avgDelay");
 
   useEffect(() => {
     let cancelled = false;
     let handle: number | null = null;
+    setData(null);
 
     async function fetchData() {
       try {
-        const res = await fetch("/api/trends");
+        const res = await fetch(`/api/trends?region=${encodeURIComponent(regionId)}`);
         if (!res.ok) return;
         const json = (await res.json()) as TrendsResponse;
         if (!cancelled) setData(json);
@@ -72,7 +75,7 @@ export function TrendPanel() {
       cancelled = true;
       if (handle) clearInterval(handle);
     };
-  }, []);
+  }, [regionId]);
 
   const series = useMemo(() => {
     if (!data) return new Map<string, number[]>();

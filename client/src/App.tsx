@@ -10,6 +10,7 @@ import { StationInfoPanel } from "./ui/StationInfoPanel";
 import { AIPanel } from "./ui/AIPanel";
 import { StationSearch } from "./ui/StationSearch";
 import { TrendPanel } from "./ui/TrendPanel";
+import { RegionSelector } from "./ui/RegionSelector";
 
 export default function App() {
   useTrafficStream();
@@ -24,6 +25,7 @@ export default function App() {
       <div className="ui-overlay">
         <Header />
         <StationSearch />
+        <RegionSelector />
         <Controls />
         <Legend />
         <Alerts />

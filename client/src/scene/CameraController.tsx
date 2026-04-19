@@ -53,6 +53,17 @@ export function CameraController({ projection }: Props) {
     setAutoOrbit(false);
   }, [selectedStationId, network, projection]);
 
+  // Reset to overview whenever the active network (region) changes so we're
+  // not stuck looking at old coordinates.
+  useEffect(() => {
+    const preset = PRESETS.overview;
+    desiredPos.current.set(...preset.pos);
+    targetVec.current.set(...preset.target);
+    flyToStationUntil.current = Date.now() + 900;
+    lastInteraction.current = Date.now();
+    setAutoOrbit(false);
+  }, [network]);
+
   useEffect(() => {
     const handler = () => {
       lastInteraction.current = Date.now();

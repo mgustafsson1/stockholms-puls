@@ -1,14 +1,22 @@
-import { readFileSync, writeFileSync, createReadStream } from "node:fs";
+import { readFileSync, writeFileSync, createReadStream, existsSync, mkdirSync } from "node:fs";
 import { createInterface } from "node:readline";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 
+import { REGIONS, regionById } from "../src/regions.js";
+
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SRC = "/Users/andersbj/Projekt/delay-heatmap/data";
 const STOP_TIMES = "/tmp/gtfs-stockholm/stop_times.txt";
-const OUT_NETWORK = resolve(__dirname, "../data/network.json");
-const OUT_TRIPS = resolve(__dirname, "../data/trip-lines.json");
-const SUBWAY_TRIPS = resolve(__dirname, "../data/subway-trips.json");
+const ROOT = resolve(__dirname, "..");
+
+const args = process.argv.slice(2);
+const regionArg = args.find((a) => a.startsWith("--region="))?.split("=")[1];
+const selected = regionArg ? [regionById(regionArg)].filter(Boolean) : REGIONS;
+if (!selected.length) {
+  console.error(`Unknown region: ${regionArg}`);
+  process.exit(1);
+}
 
 function parseCsvLine(line) {
   const out = [];
@@ -34,7 +42,7 @@ function parseCsvLine(line) {
   return out;
 }
 
-function modeFromRouteType(rt, longName, shortName) {
+function modeFromRouteType(rt, longName) {
   if (rt === 401) return "subway";
   if (rt === 100) return "rail";
   if (rt === 1000) return "ferry";
@@ -66,48 +74,82 @@ function colorFor(mode, short, long) {
   return "#888";
 }
 
-// 1. Parse routes.txt
+function prefixFor(mode) {
+  if (mode === "rail") return "J";
+  if (mode === "lightrail") return "L";
+  if (mode === "tram") return "S";
+  if (mode === "ferry") return "B";
+  return "T";
+}
+
+function matchesOperator(routeId, prefixes) {
+  return prefixes.some((p) => routeId.startsWith(p));
+}
+
+// ---------- Pass 1: routes.txt (shared across all regions) ----------
 console.log("[1/6] reading routes.txt");
-const routes = new Map();
-for (const line of readFileSync(`${SRC}/routes.txt`, "utf8").split("\n").slice(1)) {
+const routeLines = readFileSync(`${SRC}/routes.txt`, "utf8").split("\n").slice(1);
+const routesAllRegions = new Map(); // regionId -> Map(route_id -> info)
+for (const region of selected) {
+  routesAllRegions.set(region.id, new Map());
+}
+for (const line of routeLines) {
   if (!line) continue;
   const p = parseCsvLine(line);
   const [route_id, , short, long, route_type] = p;
-  if (!route_id?.startsWith("9011001")) continue;
   const rt = Number(route_type);
-  const mode = modeFromRouteType(rt, long, short);
+  const mode = modeFromRouteType(rt, long);
   if (!mode) continue;
-  if (mode === "subway") continue; // keep existing
-  const prefix = mode === "rail" ? "J" : mode === "lightrail" ? "L" : mode === "tram" ? "S" : mode === "ferry" ? "B" : "T";
-  routes.set(route_id, {
-    route_id, mode, short, long,
-    color: colorFor(mode, short, long),
-    lineId: `${prefix}${short}`,
+  for (const region of selected) {
+    if (region.keepExistingSubway && mode === "subway") continue;
+    if (!matchesOperator(route_id, region.operatorPrefixes)) continue;
+    routesAllRegions.get(region.id).set(route_id, {
+      route_id, mode, short, long,
+      color: colorFor(mode, short, long),
+      lineId: `${prefixFor(mode)}${short}`,
+    });
+  }
+}
+for (const region of selected) {
+  console.log(`  → ${region.id}: ${routesAllRegions.get(region.id).size} non-bus routes`);
+}
+
+// ---------- Pass 2: trips.txt (find sample trips per route+dir) ----------
+console.log("[2/6] reading trips.txt");
+const tripsAllRegions = new Map(); // regionId -> { tripLookup: Map, sampleTrips: Set, perRouteDir: Map }
+for (const region of selected) {
+  tripsAllRegions.set(region.id, {
+    tripLookup: new Map(),
+    sampleTrips: new Set(),
+    perRouteDir: new Map(),
   });
 }
-console.log(`  → ${routes.size} non-subway SL routes`);
-
-// 2. Parse trips.txt, keep all trips for our routes (for trip-lines mapping),
-//    and a small sample per (route, direction) for building canonical sequences.
-console.log("[2/6] reading trips.txt");
-const tripLookup = new Map();
-const sampleTrips = new Set();
-const perRouteDir = new Map();
-for (const line of readFileSync(`${SRC}/trips.txt`, "utf8").split("\n").slice(1)) {
+const tripsStream = readFileSync(`${SRC}/trips.txt`, "utf8").split("\n");
+for (let i = 1; i < tripsStream.length; i++) {
+  const line = tripsStream[i];
   if (!line) continue;
   const p = parseCsvLine(line);
   const [route_id, , trip_id, , direction_id] = p;
-  if (!routes.has(route_id)) continue;
-  tripLookup.set(trip_id, { route_id, direction_id });
-  const key = `${route_id}|${direction_id}`;
-  const n = perRouteDir.get(key) ?? 0;
-  if (n < 20) sampleTrips.add(trip_id);
-  perRouteDir.set(key, n + 1);
+  for (const region of selected) {
+    const routes = routesAllRegions.get(region.id);
+    if (!routes.has(route_id)) continue;
+    const rdata = tripsAllRegions.get(region.id);
+    rdata.tripLookup.set(trip_id, { route_id, direction_id });
+    const key = `${route_id}|${direction_id}`;
+    const n = rdata.perRouteDir.get(key) ?? 0;
+    if (n < 20) rdata.sampleTrips.add(trip_id);
+    rdata.perRouteDir.set(key, n + 1);
+  }
 }
-console.log(`  → ${tripLookup.size} total trip mappings, ${sampleTrips.size} sample trips`);
+for (const region of selected) {
+  const rdata = tripsAllRegions.get(region.id);
+  console.log(`  → ${region.id}: ${rdata.tripLookup.size} trip mappings, ${rdata.sampleTrips.size} samples`);
+}
 
-// 3. Stream stop_times.txt for sample trips
+// ---------- Pass 3: stream stop_times.txt for sample trips ----------
 console.log("[3/6] streaming stop_times.txt (large)");
+const allSampleTrips = new Set();
+for (const r of selected) for (const t of tripsAllRegions.get(r.id).sampleTrips) allSampleTrips.add(t);
 const tripStops = new Map();
 const rl = createInterface({ input: createReadStream(STOP_TIMES) });
 let seen = 0;
@@ -117,7 +159,7 @@ for await (const line of rl) {
   if (!line) continue;
   const commaIdx = line.indexOf(",");
   const tid = line.slice(0, commaIdx);
-  if (!sampleTrips.has(tid)) continue;
+  if (!allSampleTrips.has(tid)) continue;
   const parts = parseCsvLine(line);
   const stop_id = parts[3];
   const stop_sequence = Number(parts[4]);
@@ -126,28 +168,15 @@ for await (const line of rl) {
   arr.push({ seq: stop_sequence, stop_id });
   seen++;
 }
-console.log(`  → ${seen} matching stop_time rows for ${tripStops.size} trips`);
+console.log(`  → ${seen} stop_time rows for ${tripStops.size} trips`);
 
-// 4. Pick the trip with the most stops per (route, direction)
-const canonicalByRouteDir = new Map();
-for (const [tid, seq] of tripStops) {
-  seq.sort((a, b) => a.seq - b.seq);
-  const t = tripLookup.get(tid);
-  if (!t) continue;
-  const key = `${t.route_id}|${t.direction_id}`;
-  const existing = canonicalByRouteDir.get(key);
-  if (!existing || seq.length > existing.length) {
-    canonicalByRouteDir.set(key, seq.map((x) => x.stop_id));
-  }
-}
-
-// 5. Parse stops.txt
+// ---------- Pass 4: stops.txt ----------
 console.log("[4/6] reading stops.txt");
 const allStops = new Map();
 for (const line of readFileSync(`${SRC}/stops.txt`, "utf8").split("\n").slice(1)) {
   if (!line) continue;
   const p = parseCsvLine(line);
-  const [stop_id, stop_name, lat, lon, loc_type, parent] = p;
+  const [stop_id, stop_name, lat, lon, _loc, parent] = p;
   allStops.set(stop_id, {
     id: stop_id,
     name: stop_name,
@@ -166,79 +195,117 @@ function resolveStation(sid) {
   return s;
 }
 
-// 6. Build network (keep subway from existing file)
-console.log("[5/6] building lines + stations");
-const existing = JSON.parse(readFileSync(OUT_NETWORK, "utf8"));
-const existingSubway = {
-  stations: existing.stations.map((s) => ({ ...s, mode: s.mode ?? "subway" })),
-  lines: existing.lines.map((l) => ({ ...l, mode: l.mode ?? "subway" })),
-};
+// ---------- Pass 5: per-region assembly ----------
+console.log("[5/6] building per-region networks");
+for (const region of selected) {
+  const routes = routesAllRegions.get(region.id);
+  const rdata = tripsAllRegions.get(region.id);
+  const tripLookup = rdata.tripLookup;
 
-const BBOX = { minLat: 59.05, maxLat: 59.75, minLon: 17.55, maxLon: 18.55 };
-const inBbox = (s) => s.lat >= BBOX.minLat && s.lat <= BBOX.maxLat && s.lon >= BBOX.minLon && s.lon <= BBOX.maxLon;
-
-const newStations = new Map();
-const newLines = [];
-for (const [key, stopIds] of canonicalByRouteDir) {
-  const [route_id, dir] = key.split("|");
-  if (dir !== "0") continue; // one direction per route
-  const route = routes.get(route_id);
-  if (!route) continue;
-  const resolved = [];
-  for (const sid of stopIds) {
-    const st = resolveStation(sid);
-    if (!st || !inBbox(st)) continue;
-    if (resolved.length && resolved[resolved.length - 1] === st.id) continue;
-    resolved.push(st.id);
-    if (!newStations.has(st.id)) {
-      newStations.set(st.id, {
-        id: st.id,
-        name: st.name,
-        lat: st.lat,
-        lon: st.lon,
-        depth: 0,
-        mode: route.mode,
-      });
+  // pick longest stop sequence per (route, direction)
+  const canonicalByRouteDir = new Map();
+  for (const [tid, arr] of tripStops) {
+    if (!tripLookup.has(tid)) continue;
+    arr.sort((a, b) => a.seq - b.seq);
+    const t = tripLookup.get(tid);
+    const key = `${t.route_id}|${t.direction_id}`;
+    const existing = canonicalByRouteDir.get(key);
+    if (!existing || arr.length > existing.length) {
+      canonicalByRouteDir.set(key, arr.map((x) => x.stop_id));
     }
   }
-  if (resolved.length < 2) continue;
-  newLines.push({
-    id: route.lineId,
-    line: route.short,
-    name: route.long || route.short,
-    color: route.color,
-    mode: route.mode,
-    stations: resolved,
-  });
-}
-console.log(`  → ${newStations.size} new stations, ${newLines.length} new lines`);
 
-const merged = {
-  origin: existing.origin,
-  stations: [...existingSubway.stations, ...newStations.values()],
-  lines: [...existingSubway.lines, ...newLines],
-};
-writeFileSync(OUT_NETWORK, JSON.stringify(merged, null, 2));
+  const bbox = region.bbox;
+  const inBbox = (s) => s.lat >= bbox.minLat && s.lat <= bbox.maxLat && s.lon >= bbox.minLon && s.lon <= bbox.maxLon;
 
-// 7. Build trip-lines.json — subway + non-subway
-console.log("[6/6] writing trip-lines.json");
-const tripLines = {};
-const subwayColor = { T10: "#0f82c8", T11: "#0f82c8", T13: "#d42e2e", T14: "#d42e2e", T17: "#3aad5c", T18: "#3aad5c", T19: "#3aad5c" };
-const subwayMap = JSON.parse(readFileSync(SUBWAY_TRIPS, "utf8"));
-for (const [tid, name] of Object.entries(subwayMap)) {
-  tripLines[tid] = { mode: "subway", lineId: name, color: subwayColor[name] || "#888" };
-}
-for (const [tid, info] of tripLookup) {
-  const r = routes.get(info.route_id);
-  tripLines[tid] = { mode: r.mode, lineId: r.lineId, color: r.color };
-}
-writeFileSync(OUT_TRIPS, JSON.stringify(tripLines));
+  const newStations = new Map();
+  const newLines = [];
+  for (const [key, stopIds] of canonicalByRouteDir) {
+    const [route_id, dir] = key.split("|");
+    if (dir !== "0") continue;
+    const route = routes.get(route_id);
+    if (!route) continue;
+    const resolved = [];
+    for (const sid of stopIds) {
+      const st = resolveStation(sid);
+      if (!st || !inBbox(st)) continue;
+      if (resolved.length && resolved[resolved.length - 1] === st.id) continue;
+      resolved.push(st.id);
+      if (!newStations.has(st.id)) {
+        newStations.set(st.id, {
+          id: st.id,
+          name: st.name,
+          lat: st.lat,
+          lon: st.lon,
+          depth: 0,
+          mode: route.mode,
+        });
+      }
+    }
+    if (resolved.length < 2) continue;
+    newLines.push({
+      id: route.lineId,
+      line: route.short,
+      name: route.long || route.short,
+      color: route.color,
+      mode: route.mode,
+      stations: resolved,
+    });
+  }
 
-console.log("\nDone.");
-console.log(`  stations: ${merged.stations.length}`);
-console.log(`  lines: ${merged.lines.length}`);
-console.log(`  trip mappings: ${Object.keys(tripLines).length}`);
-for (const mode of ["subway", "rail", "lightrail", "tram", "ferry"]) {
-  const lines = merged.lines.filter((l) => l.mode === mode);
-  console.log(`  ${mode}: ${lines.length} lines (${lines.map((l) => l.line).join(", ")})`);
+  const outDir = resolve(ROOT, `data/regions/${region.id}`);
+  if (!existsSync(outDir)) mkdirSync(outDir, { recursive: true });
+
+  let mergedStations = Array.from(newStations.values());
+  let mergedLines = newLines;
+
+  if (region.keepExistingSubway) {
+    // Stockholm: merge hand-curated subway lines from data/network.json
+    const subwayPath = resolve(ROOT, "data/network.json");
+    if (existsSync(subwayPath)) {
+      const existing = JSON.parse(readFileSync(subwayPath, "utf8"));
+      const subwayStations = existing.stations
+        .filter((s) => (s.mode ?? "subway") === "subway")
+        .map((s) => ({ ...s, mode: "subway" }));
+      const subwayLines = existing.lines
+        .filter((l) => (l.mode ?? "subway") === "subway")
+        .map((l) => ({ ...l, mode: "subway" }));
+      mergedStations = [...subwayStations, ...mergedStations];
+      mergedLines = [...subwayLines, ...mergedLines];
+    }
+  }
+
+  const merged = {
+    origin: region.origin,
+    stations: mergedStations,
+    lines: mergedLines,
+  };
+  writeFileSync(resolve(outDir, "network.json"), JSON.stringify(merged, null, 2));
+
+  // trip-lines
+  const tripLines = {};
+  for (const [tid, info] of tripLookup) {
+    const r = routes.get(info.route_id);
+    if (!r) continue;
+    tripLines[tid] = { mode: r.mode, lineId: r.lineId, color: r.color };
+  }
+  // Stockholm: also include subway trip mappings from old data/subway-trips.json
+  if (region.keepExistingSubway) {
+    const subwayPath = resolve(ROOT, "data/subway-trips.json");
+    if (existsSync(subwayPath)) {
+      const subwayColor = { T10: "#0f82c8", T11: "#0f82c8", T13: "#d42e2e", T14: "#d42e2e", T17: "#3aad5c", T18: "#3aad5c", T19: "#3aad5c" };
+      const subwayMap = JSON.parse(readFileSync(subwayPath, "utf8"));
+      for (const [tid, name] of Object.entries(subwayMap)) {
+        tripLines[tid] = { mode: "subway", lineId: name, color: subwayColor[name] || "#888" };
+      }
+    }
+  }
+  writeFileSync(resolve(outDir, "trip-lines.json"), JSON.stringify(tripLines));
+
+  const byMode = {};
+  for (const l of merged.lines) byMode[l.mode] = (byMode[l.mode] ?? 0) + 1;
+  console.log(`  → ${region.id}: stations=${merged.stations.length} lines=${merged.lines.length} trips=${Object.keys(tripLines).length}`);
+  console.log(`      by mode:`, byMode);
 }
+
+console.log("[6/6] done.");

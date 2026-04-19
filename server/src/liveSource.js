@@ -7,29 +7,16 @@ import { dirname, resolve } from "node:path";
 const { transit_realtime } = gtfsBindings;
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const TRIP_MAP_PATH = resolve(__dirname, "../data/trip-lines.json");
-let TRIP_TO_LINE = {};
-try {
-  TRIP_TO_LINE = JSON.parse(readFileSync(TRIP_MAP_PATH, "utf8"));
-  const byMode = {};
-  for (const info of Object.values(TRIP_TO_LINE)) {
-    byMode[info.mode] = (byMode[info.mode] ?? 0) + 1;
+
+function loadTripMap(path) {
+  try {
+    return JSON.parse(readFileSync(path, "utf8"));
+  } catch {
+    return {};
   }
-  const summary = Object.entries(byMode).map(([m, n]) => `${m}:${n}`).join(" ");
-  console.log(`[live] loaded ${Object.keys(TRIP_TO_LINE).length} trip→line mappings (${summary})`);
-} catch {
-  console.warn("[live] trip-lines.json missing — falling back to geographic filter only");
 }
 
-const GTFS_RT_VEHICLE_URL =
-  "https://opendata.samtrafiken.se/gtfs-rt-sweden/sl/VehiclePositionsSweden.pb";
-const GTFS_RT_TRIPS_URL =
-  "https://opendata.samtrafiken.se/gtfs-rt-sweden/sl/TripUpdatesSweden.pb";
-const GTFS_RT_ALERTS_URL =
-  "https://opendata.samtrafiken.se/gtfs-rt-sweden/sl/ServiceAlertsSweden.pb";
-
 const POLL_MS = 15_000;
-const MAX_MATCH_METERS = 400;
 const STATION_MATCH_METERS = 120;
 const STALE_TRAIN_MS = 90_000;
 
@@ -42,8 +29,25 @@ function getKey() {
 }
 
 export class LiveSource {
-  constructor(network) {
+  constructor(network, options = {}) {
     this.network = network;
+    this.regionId = options.regionId ?? "default";
+    this.label = options.label ?? this.regionId;
+    this.operator = options.operator ?? "sl";
+    this.vehicleUrl = options.vehicleUrl ?? `https://opendata.samtrafiken.se/gtfs-rt-sweden/${this.operator}/VehiclePositionsSweden.pb`;
+    this.tripUpdatesUrl = options.tripUpdatesUrl ?? `https://opendata.samtrafiken.se/gtfs-rt-sweden/${this.operator}/TripUpdatesSweden.pb`;
+    this.alertsUrl = options.alertsUrl ?? `https://opendata.samtrafiken.se/gtfs-rt-sweden/${this.operator}/ServiceAlertsSweden.pb`;
+    this.maxMatchMeters = options.maxMatchMeters ?? 400;
+    this.maxMatchMetersForced = options.maxMatchMetersForced ?? 600;
+    this.ferryMaxMeters = options.ferryMaxMeters ?? 2500;
+    this.tripMap = options.tripMap ?? (options.tripMapPath ? loadTripMap(options.tripMapPath) : {});
+    const byMode = {};
+    for (const info of Object.values(this.tripMap)) {
+      byMode[info.mode] = (byMode[info.mode] ?? 0) + 1;
+    }
+    const summary = Object.entries(byMode).map(([m, n]) => `${m}:${n}`).join(" ");
+    console.log(`[live:${this.regionId}] ${Object.keys(this.tripMap).length} trip→line mappings (${summary || "none"})`);
+
     this.stationById = new Map(network.stations.map((s) => [s.id, s]));
     this.segments = buildSegments(network);
     this.trains = new Map();
@@ -80,7 +84,7 @@ export class LiveSource {
     const key = getKey();
     if (!key) return;
     try {
-      const res = await fetch(`${GTFS_RT_TRIPS_URL}?key=${key}`, {
+      const res = await fetch(`${this.tripUpdatesUrl}?key=${key}`, {
         headers: { "Accept-Encoding": "gzip, deflate" },
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -93,7 +97,7 @@ export class LiveSource {
         const tu = e.tripUpdate;
         if (!tu?.trip?.tripId) continue;
         const tripId = tu.trip.tripId;
-        if (Object.keys(TRIP_TO_LINE).length && !TRIP_TO_LINE[tripId]) continue;
+        if (Object.keys(this.tripMap).length && !this.tripMap[tripId]) continue;
 
         // Skip canceled / duplicated / deleted trips.
         const rel = tu.trip.scheduleRelationship;
@@ -128,7 +132,7 @@ export class LiveSource {
     const key = getKey();
     if (!key) return;
     try {
-      const res = await fetch(`${GTFS_RT_VEHICLE_URL}?key=${key}`, {
+      const res = await fetch(`${this.vehicleUrl}?key=${key}`, {
         headers: { "Accept-Encoding": "gzip, deflate" },
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -147,7 +151,7 @@ export class LiveSource {
     const key = getKey();
     if (!key) return;
     try {
-      const res = await fetch(`${GTFS_RT_ALERTS_URL}?key=${key}`, {
+      const res = await fetch(`${this.alertsUrl}?key=${key}`, {
         headers: { "Accept-Encoding": "gzip, deflate" },
       });
       if (!res.ok) return;
@@ -188,7 +192,7 @@ export class LiveSource {
   }
 
   updateFromFeed(feed) {
-    const usingTripMap = Object.keys(TRIP_TO_LINE).length > 0;
+    const usingTripMap = Object.keys(this.tripMap).length > 0;
     for (const entity of feed.entity) {
       const v = entity.vehicle;
       if (!v?.position) continue;
@@ -201,7 +205,7 @@ export class LiveSource {
       if (usingTripMap) {
         const tripId = v.trip?.tripId;
         if (!tripId) continue;
-        const info = TRIP_TO_LINE[tripId];
+        const info = this.tripMap[tripId];
         if (!info) continue;
         forcedLineId = info.lineId;
         mode = info.mode;
@@ -242,7 +246,7 @@ export class LiveSource {
 
   matchToSegment(lat, lon, forcedLineId, mode) {
     let best = null;
-    const maxMeters = mode === "ferry" ? 2500 : forcedLineId ? 600 : MAX_MATCH_METERS;
+    const maxMeters = mode === "ferry" ? this.ferryMaxMeters : forcedLineId ? this.maxMatchMetersForced : this.maxMatchMeters;
     for (const seg of this.segments) {
       if (forcedLineId && seg.lineId !== forcedLineId) continue;
       const info = projectOntoSegment(lat, lon, seg);

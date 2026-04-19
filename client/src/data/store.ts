@@ -37,10 +37,14 @@ interface AppState {
   aiError: string | null;
   aiEnabled: boolean;
   hiddenLineIds: Set<string>;
+  regions: { id: string; label: string }[];
+  regionId: string;
 
   setNetwork: (n: Network) => void;
   setHiddenLineIds: (ids: Set<string>) => void;
   toggleLineGroup: (lineIds: string[]) => void;
+  setRegions: (list: { id: string; label: string }[]) => void;
+  setRegionId: (id: string) => void;
   applySnapshot: (snap: Snapshot) => void;
   setConnected: (v: boolean) => void;
   setSource: (s: "simulator" | "trafiklab" | "unknown") => void;
@@ -73,8 +77,15 @@ export const useAppStore = create<AppState>((set) => ({
   aiError: null,
   aiEnabled: false,
   hiddenLineIds: loadHiddenLineIds(),
+  regions: [],
+  regionId: (typeof localStorage !== "undefined" && localStorage.getItem("sl:region")) || "stockholm",
 
   setNetwork: (n) => set({ network: n }),
+  setRegions: (list) => set({ regions: list }),
+  setRegionId: (id) => {
+    try { localStorage.setItem("sl:region", id); } catch {}
+    set({ regionId: id, selectedTrainId: null, selectedStationId: null, followTrainId: null, trains: new Map() });
+  },
   setHiddenLineIds: (ids) => {
     saveHiddenLineIds(ids);
     set({ hiddenLineIds: new Set(ids) });
