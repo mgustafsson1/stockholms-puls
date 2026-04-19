@@ -1,0 +1,38 @@
+{
+  "origin": {
+    "lat": 59.8586,
+    "lon": 17.6389,
+    "label": "Uppsala C"
+  },
+  "stations": [
+    {
+      "id": "1122",
+      "name": "Färjeläget (Gräsö) (Östhammar)",
+      "lat": 60.346553,
+      "lon": 18.461771,
+      "depth": 0,
+      "mode": "ferry"
+    },
+    {
+      "id": "470",
+      "name": "Färjeläget (Öregrund) (Östhammar)",
+      "lat": 60.340584,
+      "lon": 18.446302,
+      "depth": 0,
+      "mode": "ferry"
+    }
+  ],
+  "lines": [
+    {
+      "id": "B900",
+      "line": "900",
+      "name": "Gräsöfärjan",
+      "color": "#24d4d4",
+      "mode": "ferry",
+      "stations": [
+        "1122",
+        "470"
+      ]
+    }
+  ]
+}

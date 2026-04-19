@@ -1,0 +1,47 @@
+{
+  "origin": {
+    "lat": 56.662,
+    "lon": 16.358,
+    "label": "Kalmar C"
+  },
+  "stations": [
+    {
+      "id": "82",
+      "name": "Västervik Resecentrum",
+      "lat": 57.75537,
+      "lon": 16.643266,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "404",
+      "name": "Gamleby station",
+      "lat": 57.896666,
+      "lon": 16.41033,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "17285",
+      "name": "Överums Bruk",
+      "lat": 57.988996,
+      "lon": 16.317761,
+      "depth": 0,
+      "mode": "rail"
+    }
+  ],
+  "lines": [
+    {
+      "id": "JKrösatåg",
+      "line": "Krösatåg",
+      "name": "Krösatåg",
+      "color": "#ff7a1f",
+      "mode": "rail",
+      "stations": [
+        "82",
+        "404",
+        "17285"
+      ]
+    }
+  ]
+}

@@ -79,7 +79,7 @@
     },
     {
       "id": "26437",
-      "name": "Lund Univ-sjukhuset",
+      "name": "Lund Universitetssjukhuset",
       "lat": 55.713436,
       "lon": 13.197095,
       "depth": 0,
@@ -174,8 +174,8 @@
       "mode": "rail"
     },
     {
-      "id": "69481",
-      "name": "Lund Klostergården station",
+      "id": "1375",
+      "name": "Klostergården station",
       "lat": 55.695077,
       "lon": 13.172165,
       "depth": 0,
@@ -480,8 +480,8 @@
     {
       "id": "323",
       "name": "Tomelilla station",
-      "lat": 55.546528,
-      "lon": 13.949163,
+      "lat": 55.546609,
+      "lon": 13.948636,
       "depth": 0,
       "mode": "rail"
     },
@@ -670,38 +670,6 @@
       "mode": "rail"
     },
     {
-      "id": "1441",
-      "name": "Ballingslöv station",
-      "lat": 56.214123,
-      "lon": 13.848319,
-      "depth": 0,
-      "mode": "rail"
-    },
-    {
-      "id": "28920",
-      "name": "Hästveda station",
-      "lat": 56.287309,
-      "lon": 13.935556,
-      "depth": 0,
-      "mode": "rail"
-    },
-    {
-      "id": "295",
-      "name": "Osby station",
-      "lat": 56.380586,
-      "lon": 13.995503,
-      "depth": 0,
-      "mode": "rail"
-    },
-    {
-      "id": "1605",
-      "name": "Killeberg station",
-      "lat": 56.475159,
-      "lon": 14.098624,
-      "depth": 0,
-      "mode": "rail"
-    },
-    {
       "id": "45",
       "name": "Älmhult station",
       "lat": 56.550769,
@@ -756,54 +724,6 @@
       "lon": 12.976951,
       "depth": 0,
       "mode": "rail"
-    },
-    {
-      "id": "25317",
-      "name": "København Østerport",
-      "lat": 55.692882,
-      "lon": 12.588034,
-      "depth": 0,
-      "mode": "rail"
-    },
-    {
-      "id": "25318",
-      "name": "København Nørreport",
-      "lat": 55.684016,
-      "lon": 12.572808,
-      "depth": 0,
-      "mode": "rail"
-    },
-    {
-      "id": "25315",
-      "name": "København H",
-      "lat": 55.672692,
-      "lon": 12.564631,
-      "depth": 0,
-      "mode": "rail"
-    },
-    {
-      "id": "25313",
-      "name": "Ørestad",
-      "lat": 55.628681,
-      "lon": 12.579547,
-      "depth": 0,
-      "mode": "rail"
-    },
-    {
-      "id": "23657",
-      "name": "Tårnby",
-      "lat": 55.629746,
-      "lon": 12.601651,
-      "depth": 0,
-      "mode": "rail"
-    },
-    {
-      "id": "25314",
-      "name": "CPH Airport",
-      "lat": 55.629429,
-      "lon": 12.649696,
-      "depth": 0,
-      "mode": "rail"
     }
   ],
   "lines": [
@@ -853,7 +773,7 @@
         "937",
         "960",
         "942",
-        "69481",
+        "1375",
         "120",
         "834",
         "961",
@@ -954,7 +874,7 @@
         "937",
         "960",
         "942",
-        "69481",
+        "1375",
         "120",
         "941",
         "945",
@@ -1000,21 +920,6 @@
         "200",
         "1607",
         "141"
-      ]
-    },
-    {
-      "id": "JKrösatåg",
-      "line": "Krösatåg",
-      "name": "Hässleholm-Växjö",
-      "color": "#ff7a1f",
-      "mode": "rail",
-      "stations": [
-        "6",
-        "1441",
-        "28920",
-        "295",
-        "1605",
-        "45"
       ]
     },
     {
@@ -1092,126 +997,6 @@
       "stations": [
         "88",
         "1546",
-        "1586",
-        "1587",
-        "3",
-        "937",
-        "120",
-        "945",
-        "1554",
-        "1270",
-        "44"
-      ]
-    },
-    {
-      "id": "J802",
-      "line": "802",
-      "name": "Ø Karlskrona - Kristianstad - Malmö - København",
-      "color": "#ff7a1f",
-      "mode": "rail",
-      "stations": [
-        "25317",
-        "25318",
-        "25315",
-        "25313",
-        "23657",
-        "25314",
-        "1586",
-        "1587",
-        "3",
-        "937",
-        "120",
-        "260",
-        "185",
-        "6",
-        "200",
-        "141"
-      ]
-    },
-    {
-      "id": "J803",
-      "line": "803",
-      "name": "Kalmar - Växjö - Hässleholm - Malmö - København",
-      "color": "#ff7a1f",
-      "mode": "rail",
-      "stations": [
-        "25317",
-        "25318",
-        "25315",
-        "25313",
-        "23657",
-        "25314",
-        "1586",
-        "1587",
-        "3",
-        "937",
-        "120",
-        "260",
-        "185",
-        "6",
-        "295",
-        "45"
-      ]
-    },
-    {
-      "id": "J804",
-      "line": "804",
-      "name": "Ø Göteborg - Halmstad - Helsingborg - Malmö - Købe",
-      "color": "#ff7a1f",
-      "mode": "rail",
-      "stations": [
-        "25317",
-        "25318",
-        "25315",
-        "25313",
-        "23657",
-        "25314",
-        "1586",
-        "1587",
-        "3",
-        "120",
-        "1554",
-        "44",
-        "64",
-        "1603",
-        "58"
-      ]
-    },
-    {
-      "id": "J805",
-      "line": "805",
-      "name": "Ø Helsingborg - Malmö - København",
-      "color": "#ff7a1f",
-      "mode": "rail",
-      "stations": [
-        "25317",
-        "25318",
-        "25315",
-        "25313",
-        "23657",
-        "25314",
-        "1586",
-        "1587",
-        "3",
-        "120",
-        "1554",
-        "1270",
-        "44"
-      ]
-    },
-    {
-      "id": "J806",
-      "line": "806",
-      "name": "Ø Helsingborg - Malmö - København",
-      "color": "#ff7a1f",
-      "mode": "rail",
-      "stations": [
-        "25317",
-        "25318",
-        "25315",
-        "25313",
-        "23657",
-        "25314",
         "1586",
         "1587",
         "3",

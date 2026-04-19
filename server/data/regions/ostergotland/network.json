@@ -1,0 +1,653 @@
+{
+  "origin": {
+    "lat": 58.4108,
+    "lon": 15.6214,
+    "label": "Linköping C"
+  },
+  "stations": [
+    {
+      "id": "17343",
+      "name": "Kvarnberget",
+      "lat": 58.554949,
+      "lon": 16.227543,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "16760",
+      "name": "Ringdansens centrum",
+      "lat": 58.558699,
+      "lon": 16.225819,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "16806",
+      "name": "Atriumhusen",
+      "lat": 58.563498,
+      "lon": 16.221288,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "17142",
+      "name": "Trumpetaregatan",
+      "lat": 58.56543,
+      "lon": 16.217926,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "16047",
+      "name": "Hyvlaregatan",
+      "lat": 58.568917,
+      "lon": 16.211351,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "15990",
+      "name": "Hageby centrum",
+      "lat": 58.572099,
+      "lon": 16.207023,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "17772",
+      "name": "Vårdcentralen Hageby",
+      "lat": 58.574923,
+      "lon": 16.202655,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "17349",
+      "name": "Ljura spårvägsbro",
+      "lat": 58.57827,
+      "lon": 16.200166,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "16810",
+      "name": "Ljura Centrum",
+      "lat": 58.580137,
+      "lon": 16.197316,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "16022",
+      "name": "Albrektsvägen",
+      "lat": 58.580915,
+      "lon": 16.189589,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "16775",
+      "name": "Broocmans plan",
+      "lat": 58.582979,
+      "lon": 16.186878,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "17305",
+      "name": "Söder Tull",
+      "lat": 58.585322,
+      "lon": 16.189706,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "17795",
+      "name": "Gustaf Adolfsplan",
+      "lat": 58.586331,
+      "lon": 16.200583,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "17344",
+      "name": "Djäkneparksskolan",
+      "lat": 58.589964,
+      "lon": 16.198647,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "16919",
+      "name": "Styrmansgatan",
+      "lat": 58.592826,
+      "lon": 16.196288,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "16024",
+      "name": "Nya torget",
+      "lat": 58.59221,
+      "lon": 16.192017,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "16758",
+      "name": "Rådhuset",
+      "lat": 58.592479,
+      "lon": 16.186139,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "7",
+      "name": "Norrköping Centralstation",
+      "lat": 58.596524,
+      "lon": 16.184686,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "16757",
+      "name": "Norr Tull",
+      "lat": 58.59485,
+      "lon": 16.176723,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "16019",
+      "name": "Matteusskolan",
+      "lat": 58.593964,
+      "lon": 16.169285,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "16776",
+      "name": "Marielund",
+      "lat": 58.596791,
+      "lon": 16.16658,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "15984",
+      "name": "Hagaskolan",
+      "lat": 58.599509,
+      "lon": 16.161086,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "16777",
+      "name": "Cedersborgsvägen",
+      "lat": 58.600802,
+      "lon": 16.157436,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "16026",
+      "name": "Slåttergatan",
+      "lat": 58.604738,
+      "lon": 16.149356,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "16774",
+      "name": "Eneby centrum",
+      "lat": 58.603003,
+      "lon": 16.143422,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "16020",
+      "name": "De Geersgatan",
+      "lat": 58.605492,
+      "lon": 16.139214,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "16021",
+      "name": "Heleneborgsgatan",
+      "lat": 58.608173,
+      "lon": 16.137106,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "16759",
+      "name": "Fridvalla",
+      "lat": 58.611475,
+      "lon": 16.134126,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "17161",
+      "name": "Klockaretorpets vändplats",
+      "lat": 58.575344,
+      "lon": 16.125624,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "17348",
+      "name": "Klockaretorpets centrum",
+      "lat": 58.577167,
+      "lon": 16.132465,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "17162",
+      "name": "Bastuban",
+      "lat": 58.578158,
+      "lon": 16.138112,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "72690",
+      "name": "Sandtorp",
+      "lat": 58.579435,
+      "lon": 16.147664,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "16782",
+      "name": "Skarphagsgatan",
+      "lat": 58.579176,
+      "lon": 16.153781,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "16027",
+      "name": "Lokegatan",
+      "lat": 58.581254,
+      "lon": 16.159011,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "16781",
+      "name": "Vägträffen",
+      "lat": 58.585236,
+      "lon": 16.163469,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "16780",
+      "name": "Strömbacken",
+      "lat": 58.586564,
+      "lon": 16.170188,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "17825",
+      "name": "Väster Tull",
+      "lat": 58.586302,
+      "lon": 16.177114,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "15985",
+      "name": "Hörsalsparken",
+      "lat": 58.588334,
+      "lon": 16.188518,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "16783",
+      "name": "Breda vägen",
+      "lat": 58.603326,
+      "lon": 16.163516,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "16784",
+      "name": "Sandbyhov",
+      "lat": 58.604597,
+      "lon": 16.158454,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "16785",
+      "name": "Rågången",
+      "lat": 58.606484,
+      "lon": 16.1545,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "17342",
+      "name": "Vidablick",
+      "lat": 58.608611,
+      "lon": 16.151458,
+      "depth": 0,
+      "mode": "tram"
+    },
+    {
+      "id": "172",
+      "name": "Motala Central",
+      "lat": 58.537411,
+      "lon": 15.047813,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "545",
+      "name": "Skänninge station",
+      "lat": 58.392974,
+      "lon": 15.092024,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "180",
+      "name": "Mjölby resecentrum",
+      "lat": 58.322435,
+      "lon": 15.132219,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "616",
+      "name": "Mantorps station",
+      "lat": 58.34821,
+      "lon": 15.28809,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "868",
+      "name": "Vikingstad station",
+      "lat": 58.383639,
+      "lon": 15.432992,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "9",
+      "name": "Linköping Centralstation",
+      "lat": 58.417119,
+      "lon": 15.624071,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "849",
+      "name": "Linghems station",
+      "lat": 58.436414,
+      "lon": 15.786557,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "16773",
+      "name": "Kimstad station",
+      "lat": 58.54599,
+      "lon": 15.971726,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "404",
+      "name": "Gamleby station",
+      "lat": 57.896666,
+      "lon": 16.41033,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "17285",
+      "name": "Överums Bruk",
+      "lat": 57.988996,
+      "lon": 16.317761,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "496",
+      "name": "Falerums station",
+      "lat": 58.143389,
+      "lon": 16.20773,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "338",
+      "name": "Åtvidabergs resecentrum",
+      "lat": 58.203439,
+      "lon": 16.002547,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "1016",
+      "name": "Basthagen station",
+      "lat": 58.205518,
+      "lon": 15.974409,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "1336",
+      "name": "Tannefors station",
+      "lat": 58.400421,
+      "lon": 15.660226,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "344",
+      "name": "Kisa resecentrum",
+      "lat": 57.985606,
+      "lon": 15.633502,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "365",
+      "name": "Rimforsa station",
+      "lat": 58.135932,
+      "lon": 15.681358,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "15188",
+      "name": "Tressholmen, St Ålö",
+      "lat": 58.102579,
+      "lon": 16.81641,
+      "depth": 0,
+      "mode": "ferry"
+    },
+    {
+      "id": "15191",
+      "name": "Lilla Ålö",
+      "lat": 58.108575,
+      "lon": 16.771406,
+      "depth": 0,
+      "mode": "ferry"
+    },
+    {
+      "id": "15197",
+      "name": "Ormö",
+      "lat": 58.094774,
+      "lon": 16.772661,
+      "depth": 0,
+      "mode": "ferry"
+    },
+    {
+      "id": "15190",
+      "name": "Bokö",
+      "lat": 58.097708,
+      "lon": 16.825973,
+      "depth": 0,
+      "mode": "ferry"
+    },
+    {
+      "id": "15198",
+      "name": "Högholmen",
+      "lat": 58.122686,
+      "lon": 16.808019,
+      "depth": 0,
+      "mode": "ferry"
+    },
+    {
+      "id": "17335",
+      "name": "Breviksnäs",
+      "lat": 58.129695,
+      "lon": 16.802683,
+      "depth": 0,
+      "mode": "ferry"
+    }
+  ],
+  "lines": [
+    {
+      "id": "S2",
+      "line": "2",
+      "name": "2",
+      "color": "#f4c430",
+      "mode": "tram",
+      "stations": [
+        "17343",
+        "16760",
+        "16806",
+        "17142",
+        "16047",
+        "15990",
+        "17772",
+        "17349",
+        "16810",
+        "16022",
+        "16775",
+        "17305",
+        "17795",
+        "17344",
+        "16919",
+        "16024",
+        "16758",
+        "7",
+        "16757",
+        "16019",
+        "16776",
+        "15984",
+        "16777",
+        "16026",
+        "16774",
+        "16020",
+        "16021",
+        "16759"
+      ]
+    },
+    {
+      "id": "S3",
+      "line": "3",
+      "name": "3",
+      "color": "#f4c430",
+      "mode": "tram",
+      "stations": [
+        "17161",
+        "17348",
+        "17162",
+        "72690",
+        "16782",
+        "16027",
+        "16781",
+        "16780",
+        "17825",
+        "17305",
+        "15985",
+        "16758",
+        "7",
+        "16757",
+        "16019",
+        "16776",
+        "15984",
+        "16783",
+        "16784",
+        "16785",
+        "17342"
+      ]
+    },
+    {
+      "id": "J81",
+      "line": "81",
+      "name": "Östgötapendeln",
+      "color": "#ff7a1f",
+      "mode": "rail",
+      "stations": [
+        "172",
+        "545",
+        "180",
+        "616",
+        "868",
+        "9",
+        "849",
+        "16773",
+        "7"
+      ]
+    },
+    {
+      "id": "JKrösatåg",
+      "line": "Krösatåg",
+      "name": "Krösatåg",
+      "color": "#ff7a1f",
+      "mode": "rail",
+      "stations": [
+        "404",
+        "17285",
+        "496",
+        "338",
+        "1016",
+        "1336",
+        "9"
+      ]
+    },
+    {
+      "id": "J84",
+      "line": "84",
+      "name": "Krösatåg",
+      "color": "#ff7a1f",
+      "mode": "rail",
+      "stations": [
+        "344",
+        "365",
+        "1336",
+        "9"
+      ]
+    },
+    {
+      "id": "B775",
+      "line": "775",
+      "name": "Skärgårdstrafik",
+      "color": "#24d4d4",
+      "mode": "ferry",
+      "stations": [
+        "15188",
+        "15191",
+        "15197",
+        "15190",
+        "15188",
+        "15198",
+        "17335"
+      ]
+    }
+  ]
+}

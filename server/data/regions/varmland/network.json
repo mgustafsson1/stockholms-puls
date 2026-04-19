@@ -1,0 +1,315 @@
+{
+  "origin": {
+    "lat": 59.3793,
+    "lon": 13.5036,
+    "label": "Karlstad C"
+  },
+  "stations": [
+    {
+      "id": "222",
+      "name": "Kristinehamn resecentrum",
+      "lat": 59.316542,
+      "lon": 14.108061,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "287",
+      "name": "Väse station",
+      "lat": 59.380547,
+      "lon": 13.851422,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "41301",
+      "name": "Välsviken station",
+      "lat": 59.391385,
+      "lon": 13.582858,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "70",
+      "name": "Karlstad Centralstation",
+      "lat": 59.377949,
+      "lon": 13.497998,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "206",
+      "name": "Kil resecentrum",
+      "lat": 59.504805,
+      "lon": 13.316746,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "426",
+      "name": "Fagerås resecentrum",
+      "lat": 59.519587,
+      "lon": 13.220535,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "1422",
+      "name": "Lene station",
+      "lat": 59.544157,
+      "lon": 13.120609,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "418",
+      "name": "Högboda station",
+      "lat": 59.557519,
+      "lon": 13.050958,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "1423",
+      "name": "Brunsberg station",
+      "lat": 59.617677,
+      "lon": 12.961134,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "410",
+      "name": "Edane station",
+      "lat": 59.626984,
+      "lon": 12.829741,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "221",
+      "name": "Arvika station",
+      "lat": 59.653635,
+      "lon": 12.591126,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "359",
+      "name": "Ottebol station",
+      "lat": 59.696075,
+      "lon": 12.469364,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "307",
+      "name": "Åmotfors station",
+      "lat": 59.768771,
+      "lon": 12.366833,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "48",
+      "name": "Charlottenberg resecentrum",
+      "lat": 59.884065,
+      "lon": 12.298435,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "217",
+      "name": "Grums resecentrum",
+      "lat": 59.352536,
+      "lon": 13.112798,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "23",
+      "name": "Säffle resecentrum",
+      "lat": 59.131898,
+      "lon": 12.916517,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "76",
+      "name": "Åmål station",
+      "lat": 59.046329,
+      "lon": 12.698745,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "274",
+      "name": "Torsby resecentrum",
+      "lat": 60.136567,
+      "lon": 13.0018,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "1411",
+      "name": "Oleby station",
+      "lat": 60.130181,
+      "lon": 13.038637,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "433",
+      "name": "Lysvik station",
+      "lat": 60.015741,
+      "lon": 13.13759,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "1415",
+      "name": "Edsbjörke station",
+      "lat": 59.902361,
+      "lon": 13.171578,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "184",
+      "name": "Sunne resecentrum",
+      "lat": 59.835123,
+      "lon": 13.148576,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "1209",
+      "name": "Kolsnäs station",
+      "lat": 59.82593,
+      "lon": 13.141256,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "501",
+      "name": "Rottneros station",
+      "lat": 59.79509,
+      "lon": 13.129283,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "1417",
+      "name": "Öjervik station",
+      "lat": 59.774098,
+      "lon": 13.122915,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "504",
+      "name": "Västra Ämtervik station",
+      "lat": 59.727593,
+      "lon": 13.147096,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "542",
+      "name": "Bäckebron station",
+      "lat": 59.661479,
+      "lon": 13.165878,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "1419",
+      "name": "Frykåsen station",
+      "lat": 59.626447,
+      "lon": 13.184783,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "508",
+      "name": "Tolita station",
+      "lat": 59.577703,
+      "lon": 13.240259,
+      "depth": 0,
+      "mode": "rail"
+    }
+  ],
+  "lines": [
+    {
+      "id": "J70",
+      "line": "70",
+      "name": "70",
+      "color": "#ff7a1f",
+      "mode": "rail",
+      "stations": [
+        "222",
+        "287",
+        "41301",
+        "70",
+        "206",
+        "426",
+        "1422",
+        "418",
+        "1423",
+        "410",
+        "221",
+        "359",
+        "307",
+        "48"
+      ]
+    },
+    {
+      "id": "J71",
+      "line": "71",
+      "name": "71",
+      "color": "#ff7a1f",
+      "mode": "rail",
+      "stations": [
+        "222",
+        "70",
+        "206",
+        "217",
+        "23",
+        "76"
+      ]
+    },
+    {
+      "id": "J74",
+      "line": "74",
+      "name": "74",
+      "color": "#ff7a1f",
+      "mode": "rail",
+      "stations": [
+        "274",
+        "1411",
+        "433",
+        "1415",
+        "184",
+        "1209",
+        "501",
+        "1417",
+        "504",
+        "542",
+        "1419",
+        "508",
+        "206",
+        "70"
+      ]
+    },
+    {
+      "id": "JAnrop",
+      "line": "Anrop",
+      "name": "270",
+      "color": "#ff7a1f",
+      "mode": "rail",
+      "stations": [
+        "1423",
+        "410"
+      ]
+    }
+  ]
+}

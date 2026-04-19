@@ -6,8 +6,8 @@ import { dirname, resolve } from "node:path";
 import { REGIONS, regionById } from "../src/regions.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const SRC = "/Users/andersbj/Projekt/delay-heatmap/data";
-const STOP_TIMES = "/tmp/gtfs-stockholm/stop_times.txt";
+const SRC = "/tmp/gtfs-sweden-fresh";
+const STOP_TIMES = "/tmp/gtfs-sweden-fresh/stop_times.txt";
 const ROOT = resolve(__dirname, "..");
 
 const args = process.argv.slice(2);
@@ -125,11 +125,16 @@ for (const region of selected) {
   });
 }
 const tripsStream = readFileSync(`${SRC}/trips.txt`, "utf8").split("\n");
+// Fresh GTFS Sweden-3 trips.txt columns:
+//   route_id, service_id, trip_id, trip_headsign, trip_short_name,
+//   direction_id, shape_id, samtrafiken_internal_trip_number
 for (let i = 1; i < tripsStream.length; i++) {
   const line = tripsStream[i];
   if (!line) continue;
   const p = parseCsvLine(line);
-  const [route_id, , trip_id, , direction_id] = p;
+  const route_id = p[0];
+  const trip_id = p[2];
+  const direction_id = p[5] ?? p[4] ?? "";
   for (const region of selected) {
     const routes = routesAllRegions.get(region.id);
     if (!routes.has(route_id)) continue;

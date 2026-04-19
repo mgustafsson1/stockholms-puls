@@ -1,0 +1,375 @@
+{
+  "origin": {
+    "lat": 57.7821,
+    "lon": 14.1607,
+    "label": "Jönköping C"
+  },
+  "stations": [
+    {
+      "id": "90",
+      "name": "Jönköping Centralstation",
+      "lat": 57.784285,
+      "lon": 14.164131,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "620",
+      "name": "Huskvarna station",
+      "lat": 57.782274,
+      "lon": 14.265783,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "171",
+      "name": "Tenhult station",
+      "lat": 57.705461,
+      "lon": 14.326252,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "34",
+      "name": "Forserum station",
+      "lat": 57.697728,
+      "lon": 14.474967,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "140",
+      "name": "Nässjö Resecentrum",
+      "lat": 57.652625,
+      "lon": 14.693759,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "379",
+      "name": "Aneby Resecentrum",
+      "lat": 57.837175,
+      "lon": 14.811954,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "41",
+      "name": "Tranås station",
+      "lat": 58.038384,
+      "lon": 14.97559,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "21",
+      "name": "Kinnared",
+      "lat": 57.026157,
+      "lon": 13.105521,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "116",
+      "name": "Landeryd station",
+      "lat": 57.076913,
+      "lon": 13.265537,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "289",
+      "name": "Smålandsstenar station",
+      "lat": 57.161355,
+      "lon": 13.414393,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "212",
+      "name": "Reftele station",
+      "lat": 57.175899,
+      "lon": 13.593126,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "59151",
+      "name": "Bredaryd station",
+      "lat": 57.176335,
+      "lon": 13.737608,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "439",
+      "name": "Forsheda station",
+      "lat": 57.163474,
+      "lon": 13.832474,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "52",
+      "name": "Värnamo Central",
+      "lat": 57.186075,
+      "lon": 14.036212,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "490",
+      "name": "Klevshult",
+      "lat": 57.351986,
+      "lon": 14.097983,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "164",
+      "name": "Skillingaryd station",
+      "lat": 57.428559,
+      "lon": 14.090837,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "232",
+      "name": "Vaggeryd station",
+      "lat": 57.498204,
+      "lon": 14.145088,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "1254",
+      "name": "Månsarp station",
+      "lat": 57.654152,
+      "lon": 14.070117,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "539",
+      "name": "Taberg station",
+      "lat": 57.678757,
+      "lon": 14.08708,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "533",
+      "name": "Norrahammar station",
+      "lat": 57.703944,
+      "lon": 14.11615,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "1084",
+      "name": "Hovslätt station",
+      "lat": 57.734778,
+      "lon": 14.123208,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "1277",
+      "name": "Rocksjön",
+      "lat": 57.775054,
+      "lon": 14.198503,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "1024",
+      "name": "Bor station",
+      "lat": 57.115783,
+      "lon": 14.168783,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "59197",
+      "name": "Rörstorp",
+      "lat": 57.172379,
+      "lon": 14.064479,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "86",
+      "name": "Vetlanda Resecentrum",
+      "lat": 57.426349,
+      "lon": 15.081305,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "59162",
+      "name": "Ekenässjön station",
+      "lat": 57.489322,
+      "lon": 15.019778,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "18912",
+      "name": "Björköby station",
+      "lat": 57.520996,
+      "lon": 14.911032,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "974",
+      "name": "Stensjön station",
+      "lat": 57.582376,
+      "lon": 14.822358,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "71614",
+      "name": "Moheda station",
+      "lat": 57.002759,
+      "lon": 14.576088,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "19370",
+      "name": "Lammhult station",
+      "lat": 57.170588,
+      "lon": 14.584926,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "1318",
+      "name": "Stockaryd Järnvägsparken",
+      "lat": 57.317651,
+      "lon": 14.591928,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "78",
+      "name": "Sävsjö station",
+      "lat": 57.402623,
+      "lon": 14.66513,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "963",
+      "name": "Bodafors station",
+      "lat": 57.506206,
+      "lon": 14.695198,
+      "depth": 0,
+      "mode": "rail"
+    }
+  ],
+  "lines": [
+    {
+      "id": "J1079",
+      "line": "1079",
+      "name": "Krösatåg",
+      "color": "#ff7a1f",
+      "mode": "rail",
+      "stations": [
+        "90",
+        "620",
+        "171",
+        "34",
+        "140",
+        "379",
+        "41"
+      ]
+    },
+    {
+      "id": "J1085",
+      "line": "1085",
+      "name": "Krösatåg",
+      "color": "#ff7a1f",
+      "mode": "rail",
+      "stations": [
+        "140",
+        "34",
+        "171",
+        "620",
+        "90"
+      ]
+    },
+    {
+      "id": "J1086",
+      "line": "1086",
+      "name": "Krösatåg",
+      "color": "#ff7a1f",
+      "mode": "rail",
+      "stations": [
+        "21",
+        "116",
+        "289",
+        "212",
+        "59151",
+        "439",
+        "52",
+        "490",
+        "164",
+        "232",
+        "1254",
+        "539",
+        "533",
+        "1084",
+        "1277",
+        "90"
+      ]
+    },
+    {
+      "id": "J1087",
+      "line": "1087",
+      "name": "Krösatåg",
+      "color": "#ff7a1f",
+      "mode": "rail",
+      "stations": [
+        "1024",
+        "59197",
+        "52"
+      ]
+    },
+    {
+      "id": "J1088",
+      "line": "1088",
+      "name": "Krösatåg",
+      "color": "#ff7a1f",
+      "mode": "rail",
+      "stations": [
+        "86",
+        "59162",
+        "18912",
+        "974",
+        "140"
+      ]
+    },
+    {
+      "id": "J1089",
+      "line": "1089",
+      "name": "Krösatåg",
+      "color": "#ff7a1f",
+      "mode": "rail",
+      "stations": [
+        "71614",
+        "19370",
+        "1318",
+        "78",
+        "963",
+        "140",
+        "34",
+        "171",
+        "620",
+        "90"
+      ]
+    }
+  ]
+}

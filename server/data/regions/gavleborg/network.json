@@ -1,0 +1,192 @@
+{
+  "origin": {
+    "lat": 60.6749,
+    "lon": 17.1413,
+    "label": "Gävle C"
+  },
+  "stations": [
+    {
+      "id": "210",
+      "name": "Gävle Centralstation",
+      "lat": 60.67604,
+      "lon": 17.151052,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "277",
+      "name": "Ockelbo station",
+      "lat": 60.891904,
+      "lon": 16.720788,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "635",
+      "name": "Lingbo station",
+      "lat": 61.044847,
+      "lon": 16.672847,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "632",
+      "name": "Holmsveden station",
+      "lat": 61.118356,
+      "lon": 16.720942,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "345",
+      "name": "Kilafors station",
+      "lat": 61.230495,
+      "lon": 16.570003,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "50816",
+      "name": "Bollnäs resecentrum",
+      "lat": 61.35051,
+      "lon": 16.392692,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "615",
+      "name": "Arbrå station",
+      "lat": 61.470754,
+      "lon": 16.37953,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "753",
+      "name": "Vallsta station",
+      "lat": 61.518173,
+      "lon": 16.367495,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "146",
+      "name": "Järvsö station",
+      "lat": 61.715453,
+      "lon": 16.171515,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "198",
+      "name": "Ljusdals resecentrum",
+      "lat": 61.826583,
+      "lon": 16.098123,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "1559",
+      "name": "Ljusne station",
+      "lat": 61.212599,
+      "lon": 17.112061,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "154",
+      "name": "Söderhamn resecentrum",
+      "lat": 61.29894,
+      "lon": 17.033247,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "1560",
+      "name": "Iggesund station",
+      "lat": 61.645492,
+      "lon": 17.081184,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "187",
+      "name": "Hudiksvalls station",
+      "lat": 61.724895,
+      "lon": 17.10843,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "602",
+      "name": "Gnarp station",
+      "lat": 62.055433,
+      "lon": 17.246445,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "59116",
+      "name": "Njurunda Resec",
+      "lat": 62.2682,
+      "lon": 17.376956,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "130",
+      "name": "Sundsvall Centralstation",
+      "lat": 62.387237,
+      "lon": 17.316055,
+      "depth": 0,
+      "mode": "rail"
+    },
+    {
+      "id": "49970",
+      "name": "Sundsvalls västra jvstn",
+      "lat": 62.390049,
+      "lon": 17.291582,
+      "depth": 0,
+      "mode": "rail"
+    }
+  ],
+  "lines": [
+    {
+      "id": "JX-tåg",
+      "line": "X-tåg",
+      "name": "X-tåg Gävle-Ljusdal",
+      "color": "#ff7a1f",
+      "mode": "rail",
+      "stations": [
+        "210",
+        "277",
+        "635",
+        "632",
+        "345",
+        "50816",
+        "615",
+        "753",
+        "146",
+        "198"
+      ]
+    },
+    {
+      "id": "JX-tåg",
+      "line": "X-tåg",
+      "name": "X-tåg Gävle-Sundsvall",
+      "color": "#ff7a1f",
+      "mode": "rail",
+      "stations": [
+        "210",
+        "1559",
+        "154",
+        "1560",
+        "187",
+        "602",
+        "59116",
+        "130",
+        "49970"
+      ]
+    }
+  ]
+}

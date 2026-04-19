@@ -6,86 +6,218 @@
   },
   "stations": [
     {
-      "id": "141",
-      "name": "Bromölla station",
-      "lat": 56.067266,
-      "lon": 14.479264,
+      "id": "24493",
+      "name": "Stenshamn",
+      "lat": 56.030847,
+      "lon": 15.778229,
       "depth": 0,
-      "mode": "rail"
+      "mode": "ferry"
     },
     {
-      "id": "79",
-      "name": "Sölvesborgs resecentrum",
-      "lat": 56.050293,
-      "lon": 14.583849,
+      "id": "24494",
+      "name": "Ungskär",
+      "lat": 56.041583,
+      "lon": 15.802336,
       "depth": 0,
-      "mode": "rail"
+      "mode": "ferry"
     },
     {
-      "id": "68228",
-      "name": "Mörrum station",
-      "lat": 56.186854,
-      "lon": 14.742953,
+      "id": "24492",
+      "name": "Inlängan",
+      "lat": 56.050928,
+      "lon": 15.773625,
       "depth": 0,
-      "mode": "rail"
+      "mode": "ferry"
     },
     {
-      "id": "73",
-      "name": "Karlshamns resecentrum",
-      "lat": 56.175806,
-      "lon": 14.867536,
+      "id": "24490",
+      "name": "Yttre Park",
+      "lat": 56.098792,
+      "lon": 15.78533,
       "depth": 0,
-      "mode": "rail"
+      "mode": "ferry"
     },
     {
-      "id": "368",
-      "name": "Bräkne Hoby",
-      "lat": 56.230799,
-      "lon": 15.115634,
+      "id": "24486",
+      "name": "Fisktorget",
+      "lat": 56.162333,
+      "lon": 15.579312,
       "depth": 0,
-      "mode": "rail"
+      "mode": "ferry"
     },
     {
-      "id": "69",
-      "name": "Ronneby resecentrum",
-      "lat": 56.206431,
-      "lon": 15.283848,
+      "id": "68901",
+      "name": "Herrgårdsviken",
+      "lat": 56.131399,
+      "lon": 15.620632,
       "depth": 0,
-      "mode": "rail"
+      "mode": "ferry"
     },
     {
-      "id": "1537",
-      "name": "Bergåsa station",
-      "lat": 56.182631,
-      "lon": 15.601347,
+      "id": "24504",
+      "name": "Sanda",
+      "lat": 56.119792,
+      "lon": 15.650817,
       "depth": 0,
-      "mode": "rail"
+      "mode": "ferry"
     },
     {
-      "id": "230",
-      "name": "Karlskrona Centralstation",
-      "lat": 56.166671,
-      "lon": 15.585368,
+      "id": "62489",
+      "name": "Trummenäs brygga",
+      "lat": 56.160224,
+      "lon": 15.724541,
       "depth": 0,
-      "mode": "rail"
+      "mode": "ferry"
+    },
+    {
+      "id": "24488",
+      "name": "Senoren",
+      "lat": 56.137539,
+      "lon": 15.742186,
+      "depth": 0,
+      "mode": "ferry"
+    },
+    {
+      "id": "68902",
+      "name": "Ytterön",
+      "lat": 56.099689,
+      "lon": 15.779882,
+      "depth": 0,
+      "mode": "ferry"
+    },
+    {
+      "id": "24506",
+      "name": "Torhamns brygga",
+      "lat": 56.092676,
+      "lon": 15.82357,
+      "depth": 0,
+      "mode": "ferry"
+    },
+    {
+      "id": "68903",
+      "name": "Långören",
+      "lat": 56.064943,
+      "lon": 15.820138,
+      "depth": 0,
+      "mode": "ferry"
+    },
+    {
+      "id": "24503",
+      "name": "Handelshamnen",
+      "lat": 56.163432,
+      "lon": 15.596737,
+      "depth": 0,
+      "mode": "ferry"
+    },
+    {
+      "id": "24513",
+      "name": "Hasslö Horns brygga",
+      "lat": 56.118314,
+      "lon": 15.488674,
+      "depth": 0,
+      "mode": "ferry"
+    },
+    {
+      "id": "24512",
+      "name": "Bredavik brygga",
+      "lat": 56.116131,
+      "lon": 15.686053,
+      "depth": 0,
+      "mode": "ferry"
+    },
+    {
+      "id": "1130",
+      "name": "Hanö",
+      "lat": 56.01,
+      "lon": 14.83639,
+      "depth": 0,
+      "mode": "ferry"
+    },
+    {
+      "id": "1257",
+      "name": "Nogersunds hamn",
+      "lat": 56.00538,
+      "lon": 14.738158,
+      "depth": 0,
+      "mode": "ferry"
     }
   ],
   "lines": [
     {
-      "id": "J802",
-      "line": "802",
-      "name": "Ø Karlskrona - Kristianstad - Malmö - København",
-      "color": "#ff7a1f",
-      "mode": "rail",
+      "id": "B910",
+      "line": "910",
+      "name": "910",
+      "color": "#24d4d4",
+      "mode": "ferry",
       "stations": [
-        "141",
-        "79",
-        "68228",
-        "73",
-        "368",
-        "69",
-        "1537",
-        "230"
+        "24493",
+        "24494",
+        "24492",
+        "24490"
+      ]
+    },
+    {
+      "id": "B911",
+      "line": "911",
+      "name": "911",
+      "color": "#24d4d4",
+      "mode": "ferry",
+      "stations": [
+        "24486",
+        "68901",
+        "24504",
+        "62489",
+        "24488",
+        "68902",
+        "24490",
+        "24506",
+        "68903",
+        "24492",
+        "24493"
+      ]
+    },
+    {
+      "id": "B916",
+      "line": "916",
+      "name": "916",
+      "color": "#24d4d4",
+      "mode": "ferry",
+      "stations": [
+        "24503",
+        "24513"
+      ]
+    },
+    {
+      "id": "B918",
+      "line": "918",
+      "name": "918",
+      "color": "#24d4d4",
+      "mode": "ferry",
+      "stations": [
+        "24503",
+        "24512"
+      ]
+    },
+    {
+      "id": "B919",
+      "line": "919",
+      "name": "919",
+      "color": "#24d4d4",
+      "mode": "ferry",
+      "stations": [
+        "24503",
+        "62489"
+      ]
+    },
+    {
+      "id": "B940",
+      "line": "940",
+      "name": "940",
+      "color": "#24d4d4",
+      "mode": "ferry",
+      "stations": [
+        "1130",
+        "1257"
       ]
     }
   ]
