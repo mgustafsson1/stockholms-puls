@@ -19,3 +19,6 @@ yarn-error.log*
 *.tsbuildinfo
 .vscode/
 .idea/
+
+# Runtime-only persisted state written by the server — not source of truth.
+server/data/regions/*/chronic-delays.json

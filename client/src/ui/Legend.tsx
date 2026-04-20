@@ -170,6 +170,19 @@ export function Legend() {
           <div className="legend-row"><span className="swatch" style={{ background: "#ffc04a", color: "#ffc04a" }} />Försenat</div>
           <div className="legend-row"><span className="swatch" style={{ background: "#ff3030", color: "#ff3030" }} />Stillastående</div>
           <div style={{ height: 10 }} />
+          <div style={{ fontSize: 10, color: "#8b98ad", letterSpacing: 0.08, textTransform: "uppercase", marginBottom: 4 }}>
+            Kronisk försening (senaste ~24h)
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
+            <div style={{
+              flex: 1,
+              height: 6,
+              borderRadius: 3,
+              background: "linear-gradient(90deg, #4bd582, #ffc04a, #ff3030)",
+              opacity: 0.85,
+            }} />
+            <span style={{ fontSize: 10, color: "#8b98ad", minWidth: 54, textAlign: "right" }}>sällan → ofta</span>
+          </div>
           <div style={{ fontSize: 10.5, color: "#8b98ad", lineHeight: 1.4 }}>
             Klicka i listan för att visa/dölja linjer. Byt region i toppen.
           </div>

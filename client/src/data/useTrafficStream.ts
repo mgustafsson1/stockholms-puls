@@ -64,6 +64,23 @@ export function useTrafficStream() {
     return () => { cancelled = true; };
   }, [regionId]);
 
+  // Pull the chronic-delay scores on region change and refresh every
+  // 2 minutes while the region is active.
+  useEffect(() => {
+    let cancelled = false;
+    const fetchScores = async () => {
+      try {
+        const res = await fetch(`/api/chronic?region=${encodeURIComponent(regionId)}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!cancelled) useAppStore.getState().setChronicScores(data.scores ?? {}, data.max ?? 0);
+      } catch {}
+    };
+    fetchScores();
+    const h = window.setInterval(fetchScores, 120_000);
+    return () => { cancelled = true; window.clearInterval(h); };
+  }, [regionId]);
+
   // WebSocket: reconnect logic independent of region. When region changes
   // while connected, send a set-region message; don't tear down the socket.
   const wsRef = useRef<WebSocket | null>(null);
@@ -100,6 +117,9 @@ export function useTrafficStream() {
           } else if (msg.type === "snapshot") {
             // Ignore snapshots from a region we've since switched away from.
             if (msg.region && msg.region !== currentRegionRef.current) return;
+            // Replay mode drives the store from /api/history/at; live
+            // snapshots would fight that and cause flicker.
+            if (useAppStore.getState().replayActive) return;
             applySnapshot(msg.data);
           } else if (msg.type === "ai") {
             const { latest, error, regionId: msgRegion } = msg.data ?? {};

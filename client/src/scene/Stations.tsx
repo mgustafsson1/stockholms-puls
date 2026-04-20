@@ -30,6 +30,8 @@ export function Stations({ network, projection }: Props) {
   const setSelectedStation = useAppStore((s) => s.setSelectedStation);
   const selectedStationId = useAppStore((s) => s.selectedStationId);
   const trains = useAppStore((s) => s.trains);
+  const chronicScores = useAppStore((s) => s.chronicScores);
+  const chronicMax = useAppStore((s) => s.chronicMax);
 
   const activity = useMemo(() => {
     const map = new Map<string, number>();
@@ -52,6 +54,7 @@ export function Stations({ network, projection }: Props) {
           onHover={(h) => setHovered(h ? s.id : null)}
           onClick={() => setSelectedStation(selectedStationId === s.id ? null : s.id)}
           activity={activity.get(s.id) ?? 0}
+          chronic={chronicMax > 0 ? (chronicScores[s.id] ?? 0) / chronicMax : 0}
         />
       ))}
     </group>
@@ -66,9 +69,30 @@ interface MarkerProps {
   onHover: (h: boolean) => void;
   onClick: () => void;
   activity: number;
+  // Normalised chronic-delay score 0..1 for this station. 0 = reliably on
+  // time, 1 = worst-in-region chronic offender.
+  chronic: number;
 }
 
-function StationMarker({ station, projection, hovered, selected, onHover, onClick, activity }: MarkerProps) {
+// Green → amber → red colour ramp for the chronic-delay halo.
+function chronicColor(t: number) {
+  const clamped = Math.max(0, Math.min(1, t));
+  // Stops: 0 = green, 0.5 = amber, 1 = red
+  if (clamped < 0.5) {
+    const k = clamped / 0.5; // 0..1 between green and amber
+    const r = Math.round(75 + (255 - 75) * k);
+    const g = Math.round(213 + (192 - 213) * k);
+    const b = Math.round(130 + (74 - 130) * k);
+    return `rgb(${r},${g},${b})`;
+  }
+  const k = (clamped - 0.5) / 0.5; // 0..1 between amber and red
+  const r = Math.round(255 + (255 - 255) * k);
+  const g = Math.round(192 + (48 - 192) * k);
+  const b = Math.round(74 + (48 - 74) * k);
+  return `rgb(${r},${g},${b})`;
+}
+
+function StationMarker({ station, projection, hovered, selected, onHover, onClick, activity, chronic }: MarkerProps) {
   const pos = projection.projectArray(station);
   const ringRef = useRef<THREE.Mesh>(null);
   const haloRef = useRef<THREE.Mesh>(null);
@@ -146,6 +170,24 @@ function StationMarker({ station, projection, hovered, selected, onHover, onClic
             <meshBasicMaterial color={color} transparent opacity={0.45} depthWrite={false} toneMapped={false} side={THREE.DoubleSide} blending={THREE.AdditiveBlending} fog={false} />
           </mesh>
         </group>
+      )}
+      {chronic > 0.08 && (
+        // Chronic-delay halo: a flat ring on the ground plane whose size,
+        // colour and opacity scale with how reliably unreliable this
+        // station has been over the last day.
+        <mesh position={[0, 0.025, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[baseScale * 2.4, baseScale * (2.4 + chronic * 2.2), 48]} />
+          <meshBasicMaterial
+            color={chronicColor(chronic)}
+            transparent
+            opacity={0.18 + chronic * 0.35}
+            depthWrite={false}
+            toneMapped={false}
+            side={THREE.DoubleSide}
+            blending={THREE.AdditiveBlending}
+            fog={false}
+          />
+        </mesh>
       )}
     </group>
   );

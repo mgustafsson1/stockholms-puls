@@ -21,6 +21,8 @@ import { Simulator } from "./simulator.js";
 import { LiveSource, hasTrafiklabKey } from "./liveSource.js";
 import { AIAnalyst } from "./aiAnalyst.js";
 import { TrendRecorder } from "./trendRecorder.js";
+import { HistoryRecorder } from "./historyRecorder.js";
+import { ChronicDelayTracker } from "./chronicDelays.js";
 import { REGIONS } from "./regions.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -88,6 +90,8 @@ for (const region of REGIONS) {
 const aiEnabled = !![...aiAnalysts.values()][0]?.apiKey;
 
 const trendRecorders = new Map();
+const historyRecorders = new Map();
+const chronicTrackers = new Map();
 for (const [id, source] of sources) {
   trendRecorders.set(id, new TrendRecorder({
     regionId: id,
@@ -96,6 +100,20 @@ for (const [id, source] of sources) {
     intervalMs: Number(process.env.TREND_INTERVAL_MS ?? 30_000),
     maxSamples: 120,
   }));
+  historyRecorders.set(id, new HistoryRecorder({
+    regionId: id,
+    getSnapshot: () => source.snapshot(),
+    intervalMs: Number(process.env.HISTORY_INTERVAL_MS ?? 60_000),
+    maxSamples: Number(process.env.HISTORY_MAX_SAMPLES ?? 180), // 3 h at 1 min
+  }));
+  const chronic = new ChronicDelayTracker({
+    regionId: id,
+    persistPath: resolve(__dirname, `../data/regions/${id}/chronic-delays.json`),
+  });
+  chronicTrackers.set(id, chronic);
+  // Observe every snapshot the source emits so scores update at poll cadence
+  // without a separate timer.
+  source.on((snap) => chronic.observe(snap));
 }
 
 app.post("/api/_snapshot", async (req, res) => {
@@ -242,6 +260,32 @@ app.get("/api/trends", (req, res) => {
   res.json(rec.snapshot());
 });
 
+// History window for replay. /api/history/range gives the bounds + sample
+// interval so the client can draw the scrubber, and /api/history/at returns
+// the buffered snapshot nearest the requested timestamp.
+app.get("/api/history/range", (req, res) => {
+  const regionId = String(req.query.region || DEFAULT_REGION);
+  const rec = historyRecorders.get(regionId);
+  if (!rec) return res.status(404).json({ error: "unknown region" });
+  res.json(rec.range());
+});
+app.get("/api/chronic", (req, res) => {
+  const regionId = String(req.query.region || DEFAULT_REGION);
+  const tracker = chronicTrackers.get(regionId);
+  if (!tracker) return res.status(404).json({ error: "unknown region" });
+  res.json(tracker.getScores());
+});
+app.get("/api/history/at", (req, res) => {
+  const regionId = String(req.query.region || DEFAULT_REGION);
+  const rec = historyRecorders.get(regionId);
+  if (!rec) return res.status(404).json({ error: "unknown region" });
+  const t = Number(req.query.t);
+  if (!Number.isFinite(t)) return res.status(400).json({ error: "t must be a numeric timestamp" });
+  const snap = rec.snapshotAt(t);
+  if (!snap) return res.status(204).end();
+  res.json(snap);
+});
+
 const server = createServer(app);
 const wss = new WebSocketServer({ server, path: "/stream" });
 
@@ -326,5 +370,7 @@ process.on("SIGINT", () => {
   for (const src of sources.values()) src.stop();
   for (const a of aiAnalysts.values()) a.stop();
   for (const rec of trendRecorders.values()) rec.stop();
+  for (const rec of historyRecorders.values()) rec.stop();
+  for (const t of chronicTrackers.values()) t.stop();
   server.close(() => process.exit(0));
 });

@@ -11,6 +11,7 @@ import { AIPanel } from "./ui/AIPanel";
 import { StationSearch } from "./ui/StationSearch";
 import { TrendPanel } from "./ui/TrendPanel";
 import { RegionSelector } from "./ui/RegionSelector";
+import { ReplayTimeline } from "./ui/ReplayTimeline";
 
 export default function App() {
   useTrafficStream();
@@ -33,6 +34,7 @@ export default function App() {
         <StationInfoPanel />
         <AIPanel />
         <TrendPanel />
+        <ReplayTimeline />
         <button
           onClick={() => setShowLabels(!showLabels)}
           className="panel"

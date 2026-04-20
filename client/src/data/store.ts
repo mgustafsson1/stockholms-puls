@@ -75,6 +75,19 @@ interface AppState {
   regionId: string;
   extraStops: ExtraStop[];
   focusPoint: FocusPoint | null;
+  // Per-station "chronic delay" score (0..max) with the region's current
+  // max so the UI can normalise without recomputing it.
+  chronicScores: Record<string, number>;
+  chronicMax: number;
+  // Replay controls. When `replayActive` is true we stop applying live WS
+  // snapshots and instead drive `trains`/`alerts` from the server's
+  // /api/history/at endpoint at `replayAt` (ms since epoch). `replayRate`
+  // multiplies wall-clock time while the user is in "play" mode.
+  replayActive: boolean;
+  replayAt: number;
+  replayPlaying: boolean;
+  replayRate: number;
+  replayRange: { from: number; to: number; intervalMs: number } | null;
 
   setNetwork: (n: Network) => void;
   setHiddenLineIds: (ids: Set<string>) => void;
@@ -97,6 +110,12 @@ interface AppState {
   setAIEnabled: (v: boolean) => void;
   setExtraStops: (stops: ExtraStop[]) => void;
   focusOn: (lat: number, lon: number, label: string) => void;
+  setReplayActive: (v: boolean) => void;
+  setReplayAt: (t: number) => void;
+  setReplayPlaying: (v: boolean) => void;
+  setReplayRate: (r: number) => void;
+  setReplayRange: (r: { from: number; to: number; intervalMs: number } | null) => void;
+  setChronicScores: (scores: Record<string, number>, max: number) => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -125,6 +144,13 @@ export const useAppStore = create<AppState>((set) => ({
   regionId: (typeof localStorage !== "undefined" && localStorage.getItem("sl:region")) || "stockholm",
   extraStops: [],
   focusPoint: null,
+  replayActive: false,
+  replayAt: 0,
+  replayPlaying: false,
+  replayRate: 4,
+  replayRange: null,
+  chronicScores: {},
+  chronicMax: 0,
 
   setNetwork: (n) => set({ network: n }),
   setRegions: (list) => set({ regions: list }),
@@ -143,6 +169,14 @@ export const useAppStore = create<AppState>((set) => ({
       // Stop search from showing last region's bus stops until the new list
       // arrives.
       extraStops: [],
+      // Drop out of replay when we switch region — the playhead only makes
+      // sense relative to one region's history buffer.
+      replayActive: false,
+      replayPlaying: false,
+      replayRange: null,
+      replayAt: 0,
+      chronicScores: {},
+      chronicMax: 0,
     });
   },
   setHiddenLineIds: (ids) => {
@@ -190,4 +224,10 @@ export const useAppStore = create<AppState>((set) => ({
   setAIEnabled: (v) => set({ aiEnabled: v }),
   setExtraStops: (stops) => set({ extraStops: stops }),
   focusOn: (lat, lon, label) => set({ focusPoint: { lat, lon, label, at: Date.now() } }),
+  setReplayActive: (v) => set({ replayActive: v, replayPlaying: false }),
+  setReplayAt: (t) => set({ replayAt: t }),
+  setReplayPlaying: (v) => set({ replayPlaying: v }),
+  setReplayRate: (r) => set({ replayRate: r }),
+  setReplayRange: (r) => set({ replayRange: r }),
+  setChronicScores: (scores, max) => set({ chronicScores: scores, chronicMax: max }),
 }));

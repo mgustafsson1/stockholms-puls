@@ -104,6 +104,18 @@ export const REGIONS = [
     ...DEFAULT_MATCH,
   },
   {
+    // Dalatrafik publishes buses only (no rail of its own — Dalabanan etc.
+    // are SJ/Norrtåg). The view is bus dots on the OSM basemap.
+    id: "dalarna",
+    label: "Dalarna",
+    operator: "dt",
+    operatorPrefixes: ["9011020"],
+    origin: { lat: 60.6065, lon: 15.6355, label: "Falun resecentrum" },
+    bbox: { minLat: 60.0, maxLat: 62.1, minLon: 12.5, maxLon: 17.0 },
+    useTripMap: true,
+    ...DEFAULT_MATCH,
+  },
+  {
     // Multi-region view: pools Skåne + Halland + Blekinge + Kronoberg + Kalmar
     // so lines like Öresundståg, Krösatåg and Pågatåg are visible end-to-end.
     id: "sydsverige",
