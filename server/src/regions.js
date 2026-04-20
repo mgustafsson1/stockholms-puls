@@ -121,11 +121,28 @@ export const REGIONS = [
     id: "sydsverige",
     label: "Sydsverige",
     operators: ["skane", "halland", "blekinge", "krono", "klt"],
-    operatorPrefixes: ["9011012", "9011009", "9011010", "9011007", "9011008", "9011636"],
+    // 9011013 = Hallandstrafiken. (9011009 is Region Gotland — used to be in
+    // this list by mistake when we started; Gotland has its own region now.)
+    operatorPrefixes: ["9011012", "9011013", "9011010", "9011007", "9011008", "9011636"],
     origin: { lat: 56.3, lon: 14.3, label: "Sydsverige" },
     bbox: { minLat: 55.2, maxLat: 57.6, minLon: 11.8, maxLon: 17.2 },
     useTripMap: true,
     ...DEFAULT_MATCH,
+  },
+  {
+    // Region Gotland (lokaltrafik) + Destination Gotland (färjor till
+    // Nynäshamn/Oskarshamn/Västervik). Bbox inkluderar fastlandsändarna så
+    // båtarna syns hela rutten.
+    id: "gotland",
+    label: "Gotland",
+    operator: "gotland",
+    operatorPrefixes: ["9011009", "9011106"],
+    origin: { lat: 57.638, lon: 18.297, label: "Visby" },
+    bbox: { minLat: 56.9, maxLat: 59.15, minLon: 16.2, maxLon: 19.5 },
+    useTripMap: true,
+    ...DEFAULT_MATCH,
+    // Färjorna behöver större matchningsradie än bussar.
+    ferryMaxMeters: 5000,
   },
 ];
 

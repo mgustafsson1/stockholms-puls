@@ -1,0 +1,57 @@
+{
+  "origin": {
+    "lat": 57.638,
+    "lon": 18.297,
+    "label": "Visby"
+  },
+  "stations": [
+    {
+      "id": "23753",
+      "name": "Visby hamnterminal",
+      "lat": 57.63431,
+      "lon": 18.281413,
+      "depth": 0,
+      "mode": "ferry"
+    },
+    {
+      "id": "719",
+      "name": "Nynäshamns färjeterminal",
+      "lat": 58.904684,
+      "lon": 17.955636,
+      "depth": 0,
+      "mode": "ferry"
+    },
+    {
+      "id": "213",
+      "name": "Oskarshamn station",
+      "lat": 57.262724,
+      "lon": 16.457158,
+      "depth": 0,
+      "mode": "ferry"
+    }
+  ],
+  "lines": [
+    {
+      "id": "BDG",
+      "line": "DG",
+      "name": "DG",
+      "color": "#24d4d4",
+      "mode": "ferry",
+      "stations": [
+        "23753",
+        "719"
+      ]
+    },
+    {
+      "id": "BDG",
+      "line": "DG",
+      "name": "DG",
+      "color": "#24d4d4",
+      "mode": "ferry",
+      "stations": [
+        "23753",
+        "213"
+      ]
+    }
+  ]
+}
