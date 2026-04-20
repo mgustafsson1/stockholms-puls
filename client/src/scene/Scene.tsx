@@ -34,11 +34,15 @@ export function Scene() {
         toneMappingExposure: 1.05,
         preserveDrawingBuffer: true,
       }}
-      camera={{ position: [10, 14, 22], fov: 48, near: 0.1, far: 1200 }}
+      camera={{ position: [10, 14, 22], fov: 48, near: 0.1, far: 4000 }}
       dpr={[1, 1.5]}
     >
       <color attach="background" args={["#03050a"]} />
-      <fog attach="fog" args={["#03050a", 40, 160]} />
+      {/* Fog keeps horizon/dust feeling atmospheric at mid-range but is set
+          far enough out that dollying up to a full-Sweden view doesn't erase
+          anything. Transit lines, stations, trains and OSM tiles individually
+          opt out via `fog={false}` so they stay crisp at any distance. */}
+      <fog attach="fog" args={["#03050a", 120, 480]} />
       <ambientLight intensity={0.2} />
       <directionalLight position={[6, 10, 4]} intensity={0.3} color="#a0c4ff" />
       <directionalLight position={[-8, 4, -6]} intensity={0.15} color="#4080ff" />

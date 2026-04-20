@@ -64,6 +64,7 @@ function LineFlow({ curve, color, length }: { curve: THREE.CatmullRomCurve3; col
         depthWrite={false}
         sizeAttenuation
         toneMapped={false}
+        fog={false}
       />
     </points>
   );

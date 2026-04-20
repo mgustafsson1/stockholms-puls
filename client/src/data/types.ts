@@ -83,5 +83,6 @@ export interface AIAnalysis {
   summary: string;
   observations: string[];
   patterns: string[];
+  predictions?: string[];
   mood: "calm" | "watch" | "stressed";
 }

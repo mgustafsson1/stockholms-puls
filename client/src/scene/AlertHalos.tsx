@@ -105,6 +105,7 @@ function AlertHalo({ pos, createdAt }: { pos: [number, number, number]; createdA
             side={THREE.DoubleSide}
             toneMapped={false}
             blending={THREE.AdditiveBlending}
+            fog={false}
           />
         </mesh>
       ))}

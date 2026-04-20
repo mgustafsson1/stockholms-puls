@@ -128,21 +128,22 @@ function StationMarker({ station, projection, hovered, selected, onHover, onClic
           emissive={color}
           emissiveIntensity={2.2}
           toneMapped={false}
+          fog={false}
         />
       </mesh>
       <mesh ref={haloRef}>
         <sphereGeometry args={[baseScale * 2.4, 14, 10]} />
-        <meshBasicMaterial color={color} transparent opacity={0.15} depthWrite={false} toneMapped={false} />
+        <meshBasicMaterial color={color} transparent opacity={0.15} depthWrite={false} toneMapped={false} fog={false} />
       </mesh>
       {station.depth > 0 && (
         <group>
           <mesh position={[0, -pos[1] / 2, 0]}>
             <cylinderGeometry args={[0.01, 0.01, Math.abs(pos[1]), 6, 1, true]} />
-            <meshBasicMaterial color={color} transparent opacity={0.32} depthWrite={false} toneMapped={false} blending={THREE.AdditiveBlending} />
+            <meshBasicMaterial color={color} transparent opacity={0.32} depthWrite={false} toneMapped={false} blending={THREE.AdditiveBlending} fog={false} />
           </mesh>
           <mesh position={[0, 0.003, 0]} rotation={[-Math.PI / 2, 0, 0]}>
             <ringGeometry args={[baseScale * 1.4, baseScale * 1.8, 20]} />
-            <meshBasicMaterial color={color} transparent opacity={0.45} depthWrite={false} toneMapped={false} side={THREE.DoubleSide} blending={THREE.AdditiveBlending} />
+            <meshBasicMaterial color={color} transparent opacity={0.45} depthWrite={false} toneMapped={false} side={THREE.DoubleSide} blending={THREE.AdditiveBlending} fog={false} />
           </mesh>
         </group>
       )}

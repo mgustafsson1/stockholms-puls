@@ -218,11 +218,12 @@ function TrainMesh({
           emissive={color}
           emissiveIntensity={3.4}
           toneMapped={false}
+          fog={false}
         />
       </mesh>
       <mesh ref={haloRef}>
         <sphereGeometry args={[0.44, 12, 10]} />
-        <meshBasicMaterial color={color} transparent opacity={0.22} depthWrite={false} toneMapped={false} />
+        <meshBasicMaterial color={color} transparent opacity={0.22} depthWrite={false} toneMapped={false} fog={false} />
       </mesh>
       <group ref={trailRef}>
         {Array.from({ length: TRAIL_LENGTH }).map((_, i) => (
@@ -234,6 +235,7 @@ function TrainMesh({
               opacity={0}
               depthWrite={false}
               toneMapped={false}
+              fog={false}
             />
           </mesh>
         ))}

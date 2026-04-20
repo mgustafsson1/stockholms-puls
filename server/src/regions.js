@@ -103,6 +103,18 @@ export const REGIONS = [
     useTripMap: true,
     ...DEFAULT_MATCH,
   },
+  {
+    // Multi-region view: pools Skåne + Halland + Blekinge + Kronoberg + Kalmar
+    // so lines like Öresundståg, Krösatåg and Pågatåg are visible end-to-end.
+    id: "sydsverige",
+    label: "Sydsverige",
+    operators: ["skane", "halland", "blekinge", "krono", "klt"],
+    operatorPrefixes: ["9011012", "9011009", "9011010", "9011007", "9011008", "9011636"],
+    origin: { lat: 56.3, lon: 14.3, label: "Sydsverige" },
+    bbox: { minLat: 55.2, maxLat: 57.6, minLon: 11.8, maxLon: 17.2 },
+    useTripMap: true,
+    ...DEFAULT_MATCH,
+  },
 ];
 
 // Everything else (dt, halland, krono, orebro, vastmanland, dintur, gotland,

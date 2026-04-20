@@ -13,19 +13,21 @@ const MODE_LABEL_SV = {
 function buildSystemPrompt(regionLabel, modeSummary) {
   const modes = modeSummary.length ? modeSummary.join(", ") : "kollektivtrafik";
   return `Du är AI-analytiker för ${regionLabel}s kollektivtrafik (${modes}).
-Du tar emot ögonblicksbilder av realtidstrafik och ska beskriva läget kortfattat och peka på avvikelser, mönster och risker.
+Du tar emot ögonblicksbilder av realtidstrafik samt de senaste analyserna du själv har producerat, och ska beskriva läget samt göra korta prediktioner om vad som händer de närmaste 10–30 minuterna.
 Skriv på svenska. Var koncis, konkret och trafikspecifik. Utgå ENDAST från den region och de trafikslag som listas ovan — nämn inte andra regioner.
 Svara ALLTID som rent JSON enligt schemat:
 {
   "summary": "en rad som beskriver det övergripande läget",
   "observations": ["..", ".."],
   "patterns": ["..", ".."],
+  "predictions": ["..", ".."],
   "mood": "calm" | "watch" | "stressed"
 }
 Ingen markdown, ingen extra text — bara JSON-objektet.
 - summary: max 110 tecken.
-- observations: 2–4 korta punkter (max ~80 tecken per punkt). Konkreta: linje, plats, delay, orsak.
+- observations: 2–4 korta punkter (max ~80 tecken per punkt) om NULÄGET. Konkreta: linje, plats, delay, orsak.
 - patterns: 0–3 korta punkter om trender eller systempåverkan. Undvik upprepning av observations.
+- predictions: 1–3 korta framåtblickande punkter (max ~90 tecken) om vad som sannolikt händer 10–30 min framåt. Basera dem på utvecklingen i historik + nuläge. Om ett tidigare prediktion visade sig rätt — flagga det kort. Om ingenting ovanligt pågår: förutsäg fortsatt lugn drift.
 - mood: calm = nästan inga förseningar; watch = enstaka avvikelser; stressed = flera linjer påverkade eller stopp.`;
 }
 
@@ -85,16 +87,14 @@ function describeTraffic(snapshot, network, history, regionLabel) {
     return `  - ${a.message} · ${a.stationName} (för ${age}s sedan)`;
   });
 
-  const trend = history.length >= 2
-    ? (() => {
-        const prev = history[history.length - 2];
-        const curr = history[history.length - 1];
-        const d = curr.delayed - prev.delayed;
-        const s = curr.stopped - prev.stopped;
-        const sign = (x) => (x > 0 ? `+${x}` : `${x}`);
-        return `Trend sedan förra sample: försenade ${sign(d)}, stillastående ${sign(s)}`;
-      })()
-    : "Trend: första mätpunkten.";
+  // Full history trajectory as a compact table so the model can see momentum.
+  const trajectoryRows = history.map((h) => {
+    const t = new Date(h.t).toLocaleTimeString("sv-SE", { hour: "2-digit", minute: "2-digit" });
+    return `  ${t}  försenade=${h.delayed}  stillastående=${h.stopped}`;
+  });
+  const trajectory = trajectoryRows.length
+    ? `Senaste mätpunkterna (äldst först):\n${trajectoryRows.join("\n")}`
+    : "Senaste mätpunkterna: (ingen historik ännu)";
 
   const ts = new Date(snapshot.t).toLocaleTimeString("sv-SE");
 
@@ -111,7 +111,21 @@ ${alertLines.length ? alertLines.join("\n") : "  (inga)"}
 Avvikande fordon:
 ${anomalies.length ? anomalies.join("\n") : "  (inga)"}
 
-${trend}`;
+${trajectory}`;
+}
+
+function formatPriorAnalyses(priors) {
+  if (!priors.length) return "Tidigare analyser: (ingen)";
+  const rows = priors.map((p, i) => {
+    const t = new Date(p.createdAt).toLocaleTimeString("sv-SE", { hour: "2-digit", minute: "2-digit" });
+    const preds = (p.predictions ?? []).slice(0, 2).map((s) => `      • ${s}`).join("\n");
+    return `  [${i + 1}] ${t} — mood=${p.mood}
+    summary: ${p.summary}
+    predictions vid det tillfället:
+${preds || "      (inga)"}`;
+  });
+  return `Tidigare analyser (nyast först, använd för att (a) följa upp prediktioner och (b) undvika upprepning):
+${rows.join("\n")}`;
 }
 
 export class AIAnalyst {
@@ -124,6 +138,7 @@ export class AIAnalyst {
     this.listeners = new Set();
     this.latest = null;
     this.history = [];
+    this.priorAnalyses = []; // ring of recent summaries+predictions for feedback
     this.inflight = false;
     this.apiKey = process.env.OPENROUTER_KEY ?? process.env.OPENROUTER_API_KEY ?? null;
     this.stopped = false;
@@ -183,7 +198,12 @@ export class AIAnalyst {
       if (this.history.length > 8) this.history.shift();
 
       const systemPrompt = buildSystemPrompt(this.regionLabel, this.modeSummary);
-      const userContent = describeTraffic(snap, this.network, this.history, this.regionLabel);
+      // Reverse so newest prior appears first, then cap to last 3 so we stay
+      // within reasonable token budgets.
+      const priorContext = formatPriorAnalyses(this.priorAnalyses.slice(-3).reverse());
+      const userContent = `${describeTraffic(snap, this.network, this.history, this.regionLabel)}
+
+${priorContext}`;
       const started = Date.now();
 
       const res = await fetch(OPENROUTER_URL, {
@@ -226,8 +246,18 @@ export class AIAnalyst {
         summary: String(parsed.summary ?? ""),
         observations: Array.isArray(parsed.observations) ? parsed.observations.map(String).slice(0, 4) : [],
         patterns: Array.isArray(parsed.patterns) ? parsed.patterns.map(String).slice(0, 3) : [],
+        predictions: Array.isArray(parsed.predictions) ? parsed.predictions.map(String).slice(0, 3) : [],
         mood: ["calm", "watch", "stressed"].includes(parsed.mood) ? parsed.mood : "watch",
       };
+      // Feed this analysis back into the next call's prompt so the model can
+      // evaluate its own recent predictions against what actually happened.
+      this.priorAnalyses.push({
+        createdAt: this.latest.createdAt,
+        summary: this.latest.summary,
+        predictions: this.latest.predictions,
+        mood: this.latest.mood,
+      });
+      if (this.priorAnalyses.length > 6) this.priorAnalyses.shift();
       this.lastError = null;
       console.log(`[ai-analyst:${this.regionId}] ${this.latest.mood.toUpperCase()} · ${this.latest.summary}`);
       this.emit();

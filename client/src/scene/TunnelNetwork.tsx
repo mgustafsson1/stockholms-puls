@@ -58,10 +58,14 @@ function ModeLine({ curve, color, length, mode }: { curve: THREE.CatmullRomCurve
           roughness={mode === "ferry" ? 0.1 : 0.4}
           metalness={mode === "rail" ? 0.25 : 0.0}
           toneMapped={false}
+          // Scene fog fades everything past ~160 units; opt the transit
+          // skeleton out so users can dolly out over whole regions without
+          // the network dissolving into the background.
+          fog={false}
         />
       </mesh>
       <mesh geometry={glowGeo}>
-        <meshBasicMaterial color={color} transparent opacity={style.glowOpacity} depthWrite={false} blending={THREE.AdditiveBlending} toneMapped={false} />
+        <meshBasicMaterial color={color} transparent opacity={style.glowOpacity} depthWrite={false} blending={THREE.AdditiveBlending} toneMapped={false} fog={false} />
       </mesh>
     </group>
   );

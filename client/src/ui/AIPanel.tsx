@@ -141,6 +141,29 @@ export function AIPanel() {
               </ul>
             </div>
           )}
+
+          {(analysis.predictions?.length ?? 0) > 0 && (
+            <div style={{ marginTop: 12, paddingTop: 10, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+              <div style={{ fontSize: 10, color: "#8b98ad", letterSpacing: 0.18, textTransform: "uppercase", marginBottom: 6, display: "flex", alignItems: "center", gap: 6 }}>
+                <span>Prediktioner</span>
+                <span style={{ color: "#5a697f", fontSize: 9, textTransform: "none", letterSpacing: 0 }}>10–30 min framåt</span>
+              </div>
+              <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 6 }}>
+                {analysis.predictions!.map((p, i) => (
+                  <li key={i} style={{
+                    fontSize: 12,
+                    color: "#ffdc8f",
+                    lineHeight: 1.4,
+                    paddingLeft: 14,
+                    position: "relative",
+                  }}>
+                    <span style={{ position: "absolute", left: 0, top: 4, fontSize: 11, color: "#ffc04a" }}>›</span>
+                    {p}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </>
       )}
 

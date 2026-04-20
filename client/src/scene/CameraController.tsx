@@ -24,6 +24,7 @@ export function CameraController({ projection }: Props) {
   const followId = useAppStore((s) => s.followTrainId);
   const trains = useAppStore((s) => s.trains);
   const selectedStationId = useAppStore((s) => s.selectedStationId);
+  const setSelectedTrain = useAppStore((s) => s.setSelectedTrain);
   const network = useAppStore((s) => s.network);
 
   const targetVec = useRef(new THREE.Vector3(0, -1, 0));
@@ -33,11 +34,23 @@ export function CameraController({ projection }: Props) {
   const orbitAngle = useRef(0);
   const flyToStationUntil = useRef(0);
 
+  // Anomaly-cycling state. When the user sits in "anomaly" mode we orbit
+  // each anomalous vehicle for a fixed dwell, then advance to the next.
+  // The camera needs 2–3 s to fly in, so the dwell has to comfortably clear
+  // that plus leave time to read the info panel.
+  const anomalyDwell = useRef({ id: null as string | null, since: 0 });
+  const ANOMALY_DWELL_MS = 22_000;
+
   useEffect(() => {
     const preset = PRESETS[mode];
     if (preset) {
       desiredPos.current.set(...preset.pos);
       targetVec.current.set(...preset.target);
+    }
+    // Reset anomaly cycle whenever we leave the mode so re-entering starts
+    // at the top of the list again.
+    if (mode !== "anomaly") {
+      anomalyDwell.current = { id: null, since: 0 };
     }
   }, [mode]);
 
@@ -113,6 +126,9 @@ export function CameraController({ projection }: Props) {
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (!controlsRef.current) return;
+      // Never intercept modifier combos — Cmd+R, Ctrl+R etc. must stay as
+      // browser reload shortcuts.
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
       const tag = (document.activeElement as HTMLElement | null)?.tagName;
       if (tag === "INPUT" || tag === "TEXTAREA") return;
       const target = controlsRef.current.target as THREE.Vector3;
@@ -185,12 +201,32 @@ export function CameraController({ projection }: Props) {
         }
       }
     } else if (mode === "anomaly") {
-      let anomaly: any = null;
-      for (const t of trains.values()) {
-        if (t.status !== "ok") { anomaly = t; break; }
-      }
-      if (anomaly) {
-        const [x, y, z] = projection.projectArray({ lat: anomaly.lat, lon: anomaly.lon, depth: anomaly.depth });
+      // Build a stable-sorted list: stopped vehicles first, then most-delayed
+      // first. Keeps ordering deterministic across frames so the cycle is
+      // predictable.
+      const list = Array.from(trains.values())
+        .filter((t) => t.status !== "ok")
+        .sort((a, b) => {
+          if (a.status !== b.status) return a.status === "stopped" ? -1 : 1;
+          return (b.delay ?? 0) - (a.delay ?? 0);
+        });
+
+      if (list.length > 0) {
+        const dwell = anomalyDwell.current;
+        const now = Date.now();
+        const currentIdx = dwell.id ? list.findIndex((t) => t.id === dwell.id) : -1;
+        const expired = now - dwell.since > ANOMALY_DWELL_MS;
+        if (currentIdx < 0 || expired) {
+          const nextIdx = currentIdx < 0 ? 0 : (currentIdx + 1) % list.length;
+          const next = list[nextIdx];
+          dwell.id = next.id;
+          dwell.since = now;
+          // Popping the InfoPanel is how the user actually reads the anomaly
+          // detail; do it synchronously when we switch target.
+          setSelectedTrain(next.id);
+        }
+        const current = list.find((t) => t.id === dwell.id) ?? list[0];
+        const [x, y, z] = projection.projectArray({ lat: current.lat, lon: current.lon, depth: current.depth });
         targetVec.current.lerp(new THREE.Vector3(x, y, z), Math.min(1, delta * 1.2));
         const orbit = state.clock.elapsedTime * 0.2;
         desiredPos.current.lerp(
@@ -201,6 +237,9 @@ export function CameraController({ projection }: Props) {
         if (controlsRef.current) {
           controlsRef.current.target.lerp(targetVec.current, Math.min(1, delta * 2));
         }
+      } else {
+        // No anomalies right now — fall back to the overview preset camera.
+        anomalyDwell.current = { id: null, since: 0 };
       }
     } else if (mode === "cross-section") {
       camera.position.lerp(desiredPos.current, lerp);
@@ -235,7 +274,7 @@ export function CameraController({ projection }: Props) {
       zoomSpeed={1.6}
       rotateSpeed={0.9}
       minDistance={0.8}
-      maxDistance={600}
+      maxDistance={2400}
       maxPolarAngle={Math.PI * 0.92}
       minPolarAngle={0.05}
       dampingFactor={0.08}

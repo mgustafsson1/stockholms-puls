@@ -33,10 +33,26 @@ export class LiveSource {
     this.network = network;
     this.regionId = options.regionId ?? "default";
     this.label = options.label ?? this.regionId;
-    this.operator = options.operator ?? "sl";
-    this.vehicleUrl = options.vehicleUrl ?? `https://opendata.samtrafiken.se/gtfs-rt-sweden/${this.operator}/VehiclePositionsSweden.pb`;
-    this.tripUpdatesUrl = options.tripUpdatesUrl ?? `https://opendata.samtrafiken.se/gtfs-rt-sweden/${this.operator}/TripUpdatesSweden.pb`;
-    this.alertsUrl = options.alertsUrl ?? `https://opendata.samtrafiken.se/gtfs-rt-sweden/${this.operator}/ServiceAlertsSweden.pb`;
+    // Multi-operator views (e.g. "sydsverige" spanning skane+halland+blekinge+
+    // krono+klt) pool N operator feeds into one source. A single-operator
+    // region stays backwards compatible via `options.operator`.
+    const opsList = Array.isArray(options.operators) && options.operators.length
+      ? options.operators
+      : [options.operator ?? "sl"];
+    this.operators = opsList;
+    this.operator = opsList[0];
+    const urlFor = (op, kind) => `https://opendata.samtrafiken.se/gtfs-rt-sweden/${op}/${kind}.pb`;
+    this.vehicleUrls = options.vehicleUrls ?? opsList.map((o) => urlFor(o, "VehiclePositionsSweden"));
+    this.tripUpdatesUrls = options.tripUpdatesUrls ?? opsList.map((o) => urlFor(o, "TripUpdatesSweden"));
+    this.alertsUrls = options.alertsUrls ?? opsList.map((o) => urlFor(o, "ServiceAlertsSweden"));
+    // Keep the old *Url singletons for anything that still reads them.
+    this.vehicleUrl = this.vehicleUrls[0];
+    this.tripUpdatesUrl = this.tripUpdatesUrls[0];
+    this.alertsUrl = this.alertsUrls[0];
+    // Bbox filter for composite regions — we only want vehicles inside the
+    // view's geographic window, even though upstream feeds publish the whole
+    // RTO's area.
+    this.bbox = options.bbox ?? null;
     this.maxMatchMeters = options.maxMatchMeters ?? 400;
     this.maxMatchMetersForced = options.maxMatchMetersForced ?? 600;
     this.ferryMaxMeters = options.ferryMaxMeters ?? 2500;
@@ -108,12 +124,13 @@ export class LiveSource {
     const key = getKey();
     if (!key) return;
     try {
-      const res = await fetch(`${this.tripUpdatesUrl}?key=${key}`, {
-        headers: { "Accept-Encoding": "gzip, deflate" },
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const buf = Buffer.from(await res.arrayBuffer());
-      const feed = transit_realtime.FeedMessage.decode(buf);
+      const feeds = await Promise.all(this.tripUpdatesUrls.map(async (u) => {
+        const res = await fetch(`${u}?key=${key}`, { headers: { "Accept-Encoding": "gzip, deflate" } });
+        if (!res.ok) throw new Error(`HTTP ${res.status} at ${u}`);
+        const buf = Buffer.from(await res.arrayBuffer());
+        return transit_realtime.FeedMessage.decode(buf);
+      }));
+      const feed = { entity: feeds.flatMap((f) => f.entity || []) };
 
       const updates = new Map();
       const nowSec = Date.now() / 1000;
@@ -156,18 +173,19 @@ export class LiveSource {
     const key = getKey();
     if (!key) return;
     try {
-      const res = await fetch(`${this.vehicleUrl}?key=${key}`, {
-        headers: { "Accept-Encoding": "gzip, deflate" },
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const buf = Buffer.from(await res.arrayBuffer());
-      const feed = transit_realtime.FeedMessage.decode(buf);
+      const feeds = await Promise.all(this.vehicleUrls.map(async (u) => {
+        const res = await fetch(`${u}?key=${key}`, { headers: { "Accept-Encoding": "gzip, deflate" } });
+        if (!res.ok) throw new Error(`HTTP ${res.status} at ${u}`);
+        const buf = Buffer.from(await res.arrayBuffer());
+        return transit_realtime.FeedMessage.decode(buf);
+      }));
+      const feed = { entity: feeds.flatMap((f) => f.entity || []) };
       this.lastFetchAt = Date.now();
       this.updateFromFeed(feed);
       this.lastError = null;
     } catch (err) {
       this.lastError = err.message;
-      console.warn("[live] vehicle fetch failed:", err.message);
+      console.warn(`[live:${this.regionId}] vehicle fetch failed:`, err.message);
     }
   }
 
@@ -175,12 +193,13 @@ export class LiveSource {
     const key = getKey();
     if (!key) return;
     try {
-      const res = await fetch(`${this.alertsUrl}?key=${key}`, {
-        headers: { "Accept-Encoding": "gzip, deflate" },
-      });
-      if (!res.ok) return;
-      const buf = Buffer.from(await res.arrayBuffer());
-      const feed = transit_realtime.FeedMessage.decode(buf);
+      const feeds = await Promise.all(this.alertsUrls.map(async (u) => {
+        const res = await fetch(`${u}?key=${key}`, { headers: { "Accept-Encoding": "gzip, deflate" } });
+        if (!res.ok) return { entity: [] };
+        const buf = Buffer.from(await res.arrayBuffer());
+        return transit_realtime.FeedMessage.decode(buf);
+      }));
+      const feed = { entity: feeds.flatMap((f) => f.entity || []) };
       const out = [];
       for (const e of feed.entity) {
         if (!e.alert) continue;
@@ -217,12 +236,16 @@ export class LiveSource {
 
   updateFromFeed(feed) {
     const usingTripMap = Object.keys(this.tripMap).length > 0;
+    const bb = this.bbox;
     for (const entity of feed.entity) {
       const v = entity.vehicle;
       if (!v?.position) continue;
       const lat = v.position.latitude;
       const lon = v.position.longitude;
       if (!lat || !lon) continue;
+      // Composite / multi-operator views usually pull in the whole RTO
+      // footprint; clip to this view's bbox so the scene stays focused.
+      if (bb && (lat < bb.minLat || lat > bb.maxLat || lon < bb.minLon || lon > bb.maxLon)) continue;
 
       const tripId = v.trip?.tripId;
       let forcedLineId = null;

@@ -2,9 +2,20 @@ import express from "express";
 import cors from "cors";
 import { WebSocketServer } from "ws";
 import { createServer } from "node:http";
-import { readFileSync } from "node:fs";
+import { readFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
+
+// Load server/.env before any module reads process.env (so AIAnalyst / the
+// Trafiklab-RT proxy can pick up keys set there). `--env-file` in npm
+// scripts handles this on a fresh start, but when running via `node --watch`
+// without the flag we do it ourselves so the dev loop keeps working.
+{
+  const envPath = resolve(dirname(fileURLToPath(import.meta.url)), "../.env");
+  if (existsSync(envPath) && typeof process.loadEnvFile === "function") {
+    try { process.loadEnvFile(envPath); } catch {}
+  }
+}
 
 import { Simulator } from "./simulator.js";
 import { LiveSource, hasTrafiklabKey } from "./liveSource.js";
@@ -42,6 +53,8 @@ for (const region of REGIONS) {
           regionId: region.id,
           label: region.label,
           operator: region.operator,
+          operators: region.operators,
+          bbox: region.operators ? region.bbox : null,
           tripMapPath: region.useTripMap === false ? null : tripMapPath,
           maxMatchMeters: region.matchMaxMeters,
           maxMatchMetersForced: region.matchMaxMetersForced,
@@ -131,6 +144,80 @@ app.get("/api/stops", (req, res) => {
   } catch {
     // Missing file just means the extractor hasn't been run — return empty.
     res.json([]);
+  }
+});
+
+// Proxy to Trafiklab Realtime "Timetables" API. Our scene tracks rail/metro
+// positions live, but for authoritative upcoming departures (including SJ,
+// Flixtrain, commercial operators and platform info) we hit this API on
+// station click. Results are cached per stop for 15 s to avoid hammering
+// upstream when users click around.
+const TRAFIKLAB_RT_KEY = process.env.TRAFIKLAB_REALTIME_KEY ?? null;
+const departuresCache = new Map(); // stopId -> { at, payload }
+app.get("/api/departures", async (req, res) => {
+  if (!TRAFIKLAB_RT_KEY) {
+    return res.status(503).json({ error: "TRAFIKLAB_REALTIME_KEY not configured" });
+  }
+  const raw = String(req.query.stopId || "").trim();
+  if (!/^[0-9]{1,9}$/.test(raw)) {
+    return res.status(400).json({ error: "stopId must be numeric" });
+  }
+  // Trafiklab wants a 9-digit rikshållplats id. Our dataset stores the short
+  // numeric id; prepend the 740 country prefix and zero-pad.
+  const riks = raw.length === 9 ? raw : `740${raw.padStart(6, "0")}`;
+  const cached = departuresCache.get(riks);
+  if (cached && Date.now() - cached.at < 15_000) {
+    return res.json(cached.payload);
+  }
+  try {
+    const duration = Math.min(120, Math.max(10, Number(req.query.duration) || 60));
+    const url = `https://realtime-api.trafiklab.se/v1/departures/${riks}?duration=${duration}&key=${TRAFIKLAB_RT_KEY}`;
+    const upstream = await fetch(url);
+    if (!upstream.ok) {
+      return res.status(upstream.status).json({ error: `upstream ${upstream.status}` });
+    }
+    const json = await upstream.json();
+    const payload = {
+      stopId: raw,
+      riks,
+      stop: json.stops?.[0] ?? null,
+      departures: (json.departures ?? []).map((d) => {
+        // Trafiklab may return a plain string for some fields and a
+        // `{id, designation}` / `{id, name}` object for others. Normalise
+        // every field we expose to a primitive so the React side never
+        // tries to render a bare object.
+        const scalar = (v, keys = ["designation", "name", "text"]) => {
+          if (v == null) return null;
+          if (typeof v === "string" || typeof v === "number") return v;
+          if (typeof v === "object") {
+            for (const k of keys) if (typeof v[k] === "string") return v[k];
+          }
+          return null;
+        };
+        return {
+          scheduled: scalar(d.scheduled),
+          realtime: scalar(d.realtime),
+          delay: Number(d.delay ?? 0),
+          canceled: !!d.canceled,
+          isRealtime: !!d.is_realtime,
+          line: scalar(d.route?.designation) ?? "",
+          lineName: scalar(d.route?.name),
+          direction: scalar(d.route?.direction) ?? "",
+          mode: scalar(d.route?.transport_mode),
+          origin: scalar(d.route?.origin),
+          destination: scalar(d.route?.destination),
+          scheduledPlatform: scalar(d.scheduled_platform),
+          realtimePlatform: scalar(d.realtime_platform),
+          agency: scalar(d.agency),
+          tripId: scalar(d.trip?.trip_id),
+          alerts: Array.isArray(d.alerts) ? d.alerts.length : 0,
+        };
+      }),
+    };
+    departuresCache.set(riks, { at: Date.now(), payload });
+    res.json(payload);
+  } catch (err) {
+    res.status(502).json({ error: err.message });
   }
 });
 
