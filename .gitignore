@@ -22,3 +22,6 @@ yarn-error.log*
 
 # Runtime-only persisted state written by the server — not source of truth.
 server/data/regions/*/chronic-delays.json
+
+# OSM Buildings tile cache — fetched lazily from Overpass at runtime.
+server/cache/

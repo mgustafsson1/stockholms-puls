@@ -23,6 +23,7 @@ import { AIAnalyst } from "./aiAnalyst.js";
 import { TrendRecorder } from "./trendRecorder.js";
 import { HistoryRecorder } from "./historyRecorder.js";
 import { ChronicDelayTracker } from "./chronicDelays.js";
+import { getBuildingsForTile } from "./buildings.js";
 import { REGIONS } from "./regions.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -269,6 +270,25 @@ app.get("/api/history/range", (req, res) => {
   if (!rec) return res.status(404).json({ error: "unknown region" });
   res.json(rec.range());
 });
+// OSM 3D building geometry for a mercator tile. Client asks for one tile at
+// a time; server caches to disk per-tile so repeated fly-overs don't hammer
+// the Overpass API.
+app.get("/api/buildings/:z/:x/:y", async (req, res) => {
+  const z = Number(req.params.z);
+  const x = Number(req.params.x);
+  const y = Number(req.params.y);
+  if (!Number.isFinite(z) || !Number.isFinite(x) || !Number.isFinite(y)) {
+    return res.status(400).json({ error: "bad tile" });
+  }
+  try {
+    const buildings = await getBuildingsForTile(z, x, y);
+    res.set("Cache-Control", "public, max-age=86400");
+    res.json({ buildings });
+  } catch (err) {
+    res.status(502).json({ error: err.message });
+  }
+});
+
 app.get("/api/chronic", (req, res) => {
   const regionId = String(req.query.region || DEFAULT_REGION);
   const tracker = chronicTrackers.get(regionId);
