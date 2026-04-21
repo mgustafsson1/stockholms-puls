@@ -28,7 +28,8 @@ Ingen markdown, ingen extra text — bara JSON-objektet.
 - observations: 2–4 korta punkter (max ~80 tecken per punkt) om NULÄGET. Konkreta: linje, plats, delay, orsak.
 - patterns: 0–3 korta punkter om trender eller systempåverkan. Undvik upprepning av observations.
 - predictions: 1–3 korta framåtblickande punkter (max ~90 tecken) om vad som sannolikt händer 10–30 min framåt. Basera dem på utvecklingen i historik + nuläge. Om ett tidigare prediktion visade sig rätt — flagga det kort. Om ingenting ovanligt pågår: förutsäg fortsatt lugn drift.
-- mood: calm = nästan inga förseningar; watch = enstaka avvikelser; stressed = flera linjer påverkade eller stopp.`;
+- mood: calm = nästan inga förseningar och inga allvarliga störningar; watch = enstaka avvikelser eller warnings; stressed = flera linjer påverkade, stopp eller minst en SEVERE-störning.
+Vikta aktiva störningar i analysen — nämn konkreta linjer och orsaker när det är relevant, men upprepa inte alla om listan är lång.`;
 }
 
 function describeTraffic(snapshot, network, history, regionLabel) {
@@ -82,9 +83,28 @@ function describeTraffic(snapshot, network, history, regionLabel) {
       return `  - ${t.lineId} ${route}: ${statusSv} ${Math.round(t.delay)}s`;
     });
 
-  const alertLines = (snapshot.alerts ?? []).slice(0, 6).map((a) => {
-    const age = Math.round((Date.now() - a.createdAt) / 1000);
-    return `  - ${a.message} · ${a.stationName} (för ${age}s sedan)`;
+  // Summarise alerts: count by severity, then show a handful of the most
+  // serious ones verbatim so the model can quote orsak/effekt in patterns.
+  const alerts = snapshot.alerts ?? [];
+  const sevCounts = { SEVERE: 0, WARNING: 0, INFO: 0, UNKNOWN_SEVERITY: 0 };
+  for (const a of alerts) {
+    const s = a.severity ?? "UNKNOWN_SEVERITY";
+    sevCounts[s] = (sevCounts[s] ?? 0) + 1;
+  }
+  const sevSummary = Object.entries(sevCounts)
+    .filter(([, n]) => n > 0)
+    .map(([s, n]) => `${s.toLowerCase()}=${n}`).join(", ");
+  const sorted = [...alerts].sort((a, b) => {
+    const rank = (s) => (s === "SEVERE" ? 0 : s === "WARNING" ? 1 : s === "INFO" ? 2 : 3);
+    return rank(a.severity) - rank(b.severity);
+  });
+  const alertLines = sorted.slice(0, 8).map((a) => {
+    const sev = a.severity ? `[${a.severity.toLowerCase()}]` : "";
+    const header = (a.header ?? a.message ?? "").slice(0, 90);
+    const lines = (a.lineIds ?? []).slice(0, 3).join(", ");
+    const cause = a.cause && a.cause !== "UNKNOWN_CAUSE" ? ` · ${a.cause}` : "";
+    const where = a.stationName ? ` · ${a.stationName}` : "";
+    return `  - ${sev} ${header}${lines ? ` (${lines})` : ""}${cause}${where}`;
   });
 
   // Full history trajectory as a compact table so the model can see momentum.
@@ -105,7 +125,7 @@ Totalt ${counts.total} fordon (${modeLine || "inga"}). I tid: ${counts.ok}, för
 Per linje:
 ${lineRows.length ? lineRows.join("\n") : "  (inga aktiva linjer)"}
 
-Aktiva störningar:
+Aktiva störningar: ${alerts.length}${sevSummary ? ` (${sevSummary})` : ""}
 ${alertLines.length ? alertLines.join("\n") : "  (inga)"}
 
 Avvikande fordon:

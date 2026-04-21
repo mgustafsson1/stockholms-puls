@@ -89,6 +89,9 @@ export class LiveSource {
     setTimeout(() => {
       this.pollVehicles().catch(() => {});
       if (!this.skipTripUpdates) this.pollTripUpdates().catch(() => {});
+      // Fire alerts immediately too — users shouldn't have to wait up to
+      // POLL_MS*4 for the first disruption list to populate.
+      this.pollAlerts().catch(() => {});
       this.vehicleHandle = setInterval(() => this.pollVehicles().catch(() => {}), POLL_MS);
       if (!this.skipTripUpdates) {
         this.tripsHandle = setInterval(() => this.pollTripUpdates().catch(() => {}), POLL_MS);
@@ -211,37 +214,121 @@ export class LiveSource {
         return transit_realtime.FeedMessage.decode(buf);
       }));
       const feed = { entity: feeds.flatMap((f) => f.entity || []) };
+      const now = Date.now();
+      const nowSec = now / 1000;
       const out = [];
       for (const e of feed.entity) {
         if (!e.alert) continue;
-        const header = (e.alert.headerText?.translation ?? [])[0]?.text ?? "Trafikstörning";
-        const desc = (e.alert.descriptionText?.translation ?? [])[0]?.text ?? "";
-        const affected = e.alert.informedEntity ?? [];
+        const a = e.alert;
+
+        // Respect the alert's activePeriod — SL publishes scheduled works
+        // months ahead, we only want what's live right now.
+        const periods = a.activePeriod ?? [];
+        if (periods.length > 0) {
+          const nowActive = periods.some((p) => {
+            const start = p.start ? Number(p.start) : 0;
+            const end = p.end ? Number(p.end) : Infinity;
+            return start <= nowSec && nowSec <= end;
+          });
+          if (!nowActive) continue;
+        }
+
+        const header = (a.headerText?.translation ?? [])[0]?.text ?? "Trafikstörning";
+        const desc = (a.descriptionText?.translation ?? [])[0]?.text ?? "";
+
+        // Try to attach to a drawn station (so the scene can halo it) and
+        // collect affected route ids so the UI can show line badges. Unlike
+        // before we keep the alert even when neither matches — bus-stop
+        // alerts carry real operational info that users want to see.
+        const affected = a.informedEntity ?? [];
         let stationId = null;
         let stationName = "";
+        const routeIds = new Set();
         for (const ie of affected) {
-          if (ie.stopId) {
+          if (!stationId && ie.stopId) {
             const match = findStationByStopId(this.network, ie.stopId);
             if (match) {
               stationId = match.id;
               stationName = match.name;
-              break;
             }
           }
+          if (ie.routeId) routeIds.add(ie.routeId);
         }
-        if (!stationId) continue;
+
+        // Translate route_id (full Samtrafiken prefix) into the short line
+        // label we already use for vehicles via tripMap lookup; fall back to
+        // the raw routeId if we don't have it.
+        const lineIds = Array.from(routeIds).map((rid) => {
+          for (const info of Object.values(this.tripMap)) {
+            if (info.routeId === rid) return info.lineId;
+          }
+          return null;
+        }).filter(Boolean);
+
         out.push({
-          id: e.id,
+          id: e.id ?? `${this.regionId}-${out.length}`,
           stationId,
           stationName,
+          lineIds,
+          header,
           message: header || desc.slice(0, 80),
-          createdAt: Date.now(),
+          description: desc,
+          severity: normalizeSeverity(a.severityLevel),
+          cause: normalizeCause(a.cause),
+          effect: normalizeEffect(a.effect),
+          activeUntil: periods[0]?.end ? Number(periods[0].end) * 1000 : null,
+          createdAt: now,
           durationMs: 5 * 60_000,
         });
       }
-      this.alerts = out;
+
+      // Dedupe: SL publishes one alert per (route, stop, direction) triple
+      // so the same disruption can appear 3-10 times. SL also sometimes
+      // ships two copies of the same disruption with a "public" and
+      // "operational" header — both share the same description verbatim,
+      // so we key by description when it's substantial.
+      const deduped = new Map();
+      const keyFor = (a) => {
+        const desc = (a.description || "").trim();
+        if (desc.length >= 30) return `desc:${desc}`;
+        return `hd:${(a.header || "").trim()}|${desc}`;
+      };
+      for (const alert of out) {
+        const key = keyFor(alert);
+        const existing = deduped.get(key);
+        if (!existing) {
+          deduped.set(key, {
+            ...alert,
+            lineIds: [...new Set(alert.lineIds)],
+          });
+          continue;
+        }
+        // Union line ids; keep the first station we attached to.
+        for (const l of alert.lineIds) {
+          if (!existing.lineIds.includes(l)) existing.lineIds.push(l);
+        }
+        if (!existing.stationId && alert.stationId) {
+          existing.stationId = alert.stationId;
+          existing.stationName = alert.stationName;
+        }
+        // Prefer the most informative header — the "public" SL headers are
+        // usually in sentence case ("Bussar ersätter…"), the operational
+        // ones are terse abbreviations ("Alla LB Käppalaklippet"). Sentence-
+        // case versions tend to be longer; use length as a proxy.
+        if ((alert.header?.length ?? 0) > (existing.header?.length ?? 0)) {
+          existing.header = alert.header;
+          existing.message = alert.message;
+        }
+      }
+      for (const a of deduped.values()) {
+        if (a.lineIds.length > 4) {
+          a.lineIds = a.lineIds.slice(0, 4);
+          a.lineIdsMore = true;
+        }
+      }
+      this.alerts = [...deduped.values()];
     } catch (err) {
-      // silent
+      console.warn(`[live:${this.regionId}] alerts fetch failed:`, err.message);
     }
   }
 
@@ -465,6 +552,28 @@ function currentStatusName(v) {
   if (typeof v === "number") return CURRENT_STATUS_NAMES[v] ?? null;
   return null;
 }
+
+// GTFS-RT Alert enums — order matches the proto index list.
+const SEVERITY_NAMES = ["UNKNOWN_SEVERITY", "INFO", "WARNING", "SEVERE"];
+const CAUSE_NAMES = [
+  "UNKNOWN_CAUSE", "OTHER_CAUSE", "TECHNICAL_PROBLEM", "STRIKE", "DEMONSTRATION",
+  "ACCIDENT", "HOLIDAY", "WEATHER", "MAINTENANCE", "CONSTRUCTION",
+  "POLICE_ACTIVITY", "MEDICAL_EMERGENCY",
+];
+const EFFECT_NAMES = [
+  "NO_SERVICE", "REDUCED_SERVICE", "SIGNIFICANT_DELAYS", "DETOUR",
+  "ADDITIONAL_SERVICE", "MODIFIED_SERVICE", "OTHER_EFFECT", "UNKNOWN_EFFECT",
+  "STOP_MOVED", "NO_EFFECT", "ACCESSIBILITY_ISSUE",
+];
+const mapEnum = (list) => (v) => {
+  if (v == null) return null;
+  if (typeof v === "string") return v;
+  if (typeof v === "number") return list[v] ?? null;
+  return null;
+};
+const normalizeSeverity = mapEnum(SEVERITY_NAMES);
+const normalizeCause = mapEnum(CAUSE_NAMES);
+const normalizeEffect = mapEnum(EFFECT_NAMES);
 
 function buildSegments(network) {
   const byId = new Map(network.stations.map((s) => [s.id, s]));

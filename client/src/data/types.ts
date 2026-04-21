@@ -60,9 +60,16 @@ export interface Train {
 
 export interface Alert {
   id: string;
-  stationId: string;
+  stationId: string | null;
   stationName: string;
+  lineIds?: string[];
+  header?: string;
   message: string;
+  description?: string;
+  severity?: "UNKNOWN_SEVERITY" | "INFO" | "WARNING" | "SEVERE" | null;
+  cause?: string | null;
+  effect?: string | null;
+  activeUntil?: number | null;
   createdAt: number;
   durationMs: number;
 }
