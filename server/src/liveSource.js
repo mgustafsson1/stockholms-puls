@@ -16,7 +16,10 @@ function loadTripMap(path) {
   }
 }
 
-const POLL_MS = 30_000;
+// 45 s keeps us comfortably under the Trafiklab 60-requests/min quota even
+// with 13 regions and Sydsverige pooling 5 operator feeds. If you add more
+// regions, do the quota arithmetic before bumping this back down.
+const POLL_MS = 45_000;
 const STATION_MATCH_METERS = 120;
 const STALE_TRAIN_MS = 120_000;
 
@@ -56,6 +59,11 @@ export class LiveSource {
     this.maxMatchMeters = options.maxMatchMeters ?? 400;
     this.maxMatchMetersForced = options.maxMatchMetersForced ?? 600;
     this.ferryMaxMeters = options.ferryMaxMeters ?? 2500;
+    // Regions without any drawn lines (rail/tram/ferry) are rendered as bare
+    // bus dots on the OSM basemap — delay data from TripUpdates has no
+    // geometry to attach to, so we skip that endpoint to save API quota.
+    const hasDrawnLines = (network.lines ?? []).some((l) => (l.mode ?? "subway") !== "bus");
+    this.skipTripUpdates = options.skipTripUpdates ?? !hasDrawnLines;
     this.tripMap = options.tripMap ?? (options.tripMapPath ? loadTripMap(options.tripMapPath) : {});
     const byMode = {};
     for (const info of Object.values(this.tripMap)) {
@@ -74,13 +82,17 @@ export class LiveSource {
     this.lastError = null;
     this.lastFetchAt = 0;
 
-    // Stagger start times so 9 regions don't all fire at the same second.
+    // Stagger start times so regions don't all fire at the same second.
     const jitter = Math.floor(Math.random() * POLL_MS);
+    const tripOp = this.skipTripUpdates ? "skipped" : "every tick";
+    console.log(`[live:${this.regionId}] vehicle-poll=${POLL_MS}ms, trip-updates=${tripOp}`);
     setTimeout(() => {
       this.pollVehicles().catch(() => {});
-      this.pollTripUpdates().catch(() => {});
+      if (!this.skipTripUpdates) this.pollTripUpdates().catch(() => {});
       this.vehicleHandle = setInterval(() => this.pollVehicles().catch(() => {}), POLL_MS);
-      this.tripsHandle = setInterval(() => this.pollTripUpdates().catch(() => {}), POLL_MS);
+      if (!this.skipTripUpdates) {
+        this.tripsHandle = setInterval(() => this.pollTripUpdates().catch(() => {}), POLL_MS);
+      }
       this.alertsHandle = setInterval(() => this.pollAlerts().catch(() => {}), POLL_MS * 4);
     }, jitter);
     this.broadcastHandle = setInterval(() => this.emit(), 1000);
@@ -108,10 +120,9 @@ export class LiveSource {
     const age = Date.now() - (this.lastFetchAt || 0);
     if (age < maxAgeMs) return;
     this.inflightRefresh = true;
-    Promise.allSettled([
-      this.pollVehicles(),
-      this.pollTripUpdates(),
-    ]).finally(() => {
+    const tasks = [this.pollVehicles()];
+    if (!this.skipTripUpdates) tasks.push(this.pollTripUpdates());
+    Promise.allSettled(tasks).finally(() => {
       this.inflightRefresh = false;
       // pollVehicles writes into this.trains but does not emit itself; the
       // 1 Hz broadcast loop normally covers that, but we want subscribers to

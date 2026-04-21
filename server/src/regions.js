@@ -116,6 +116,18 @@ export const REGIONS = [
     ...DEFAULT_MATCH,
   },
   {
+    // Länstrafiken Örebro — buses only. Mälartåg/SJ går genom länet men
+    // publicerar ingen RT via Trafiklab, så inga räls-linjer ritas.
+    id: "orebro",
+    label: "Örebro",
+    operator: "orebro",
+    operatorPrefixes: ["9011018"],
+    origin: { lat: 59.2741, lon: 15.2066, label: "Örebro C" },
+    bbox: { minLat: 58.7, maxLat: 60.1, minLon: 14.0, maxLon: 16.0 },
+    useTripMap: true,
+    ...DEFAULT_MATCH,
+  },
+  {
     // Multi-region view: pools Skåne + Halland + Blekinge + Kronoberg + Kalmar
     // so lines like Öresundståg, Krösatåg and Pågatåg are visible end-to-end.
     id: "sydsverige",
