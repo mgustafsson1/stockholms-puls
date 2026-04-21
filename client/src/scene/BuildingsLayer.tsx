@@ -126,17 +126,29 @@ function buildBuildingsGeometry(
   return geo;
 }
 
+// Darken a hex colour toward near-black so the emissive stays subtle without
+// killing the user-picked hue.
+function darken(hex: string, factor: number): string {
+  const m = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(hex);
+  if (!m) return hex;
+  const r = Math.round(parseInt(m[1], 16) * factor);
+  const g = Math.round(parseInt(m[2], 16) * factor);
+  const b = Math.round(parseInt(m[3], 16) * factor);
+  return `#${r.toString(16).padStart(2, "0")}${g.toString(16).padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
+}
+
 function buildMergedMesh(
   buildings: Building[],
   projection: Projection,
   opacity: number,
-  heightScale: number
+  heightScale: number,
+  color: string,
 ): THREE.Mesh | null {
   const geo = buildBuildingsGeometry(buildings, projection, heightScale);
   if (!geo) return null;
   const material = new THREE.MeshStandardMaterial({
-    color: "#2a3852",
-    emissive: "#0b1422",
+    color,
+    emissive: darken(color, 0.25),
     emissiveIntensity: 0.9,
     roughness: 0.75,
     metalness: 0.05,
@@ -155,6 +167,7 @@ export function BuildingsLayer({ projection }: { projection: Projection }) {
   const showBuildings = useAppStore((s) => s.showBuildings);
   const opacity = useAppStore((s) => s.buildingsOpacity);
   const heightScale = useAppStore((s) => s.buildingsHeightScale);
+  const color = useAppStore((s) => s.buildingsColor);
   const [tileKeys, setTileKeys] = useState<Set<string>>(() => new Set());
   const loadsRef = useRef<Map<string, TileLoad>>(new Map());
   const rawRef = useRef<Map<string, Building[]>>(new Map());
@@ -219,7 +232,7 @@ export function BuildingsLayer({ projection }: { projection: Projection }) {
         (existing.mesh.material as THREE.Material).dispose();
         groupRef.current?.remove(existing.mesh);
       }
-      const mesh = buildMergedMesh(data, projection, opacity, heightScale);
+      const mesh = buildMergedMesh(data, projection, opacity, heightScale, color);
       loads.set(key, { key, status: "ready", mesh });
       if (mesh && groupRef.current) groupRef.current.add(mesh);
     };
@@ -249,7 +262,7 @@ export function BuildingsLayer({ projection }: { projection: Projection }) {
       })();
     }
     return () => { cancelled = true; };
-  }, [tileKeys, projection, opacity, heightScale]);
+  }, [tileKeys, projection, opacity, heightScale, color]);
 
   // Cleanup everything on unmount.
   useEffect(() => {

@@ -83,6 +83,7 @@ interface AppState {
   showBuildings: boolean;
   buildingsOpacity: number;      // 0..1
   buildingsHeightScale: number;  // multiplier applied to OSM heights
+  buildingsColor: string;        // hex
   // Replay controls. When `replayActive` is true we stop applying live WS
   // snapshots and instead drive `trains`/`alerts` from the server's
   // /api/history/at endpoint at `replayAt` (ms since epoch). `replayRate`
@@ -123,6 +124,7 @@ interface AppState {
   setShowBuildings: (v: boolean) => void;
   setBuildingsOpacity: (v: number) => void;
   setBuildingsHeightScale: (v: number) => void;
+  setBuildingsColor: (hex: string) => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -172,6 +174,12 @@ export const useAppStore = create<AppState>((set) => ({
       const v = typeof localStorage !== "undefined" ? parseFloat(localStorage.getItem("sl:buildings-height") ?? "") : NaN;
       return Number.isFinite(v) ? v : 1;
     } catch { return 1; }
+  })(),
+  buildingsColor: (() => {
+    try {
+      const v = typeof localStorage !== "undefined" ? localStorage.getItem("sl:buildings-color") : null;
+      return v && /^#[0-9a-f]{6}$/i.test(v) ? v : "#2a3852";
+    } catch { return "#2a3852"; }
   })(),
 
   setNetwork: (n) => set({ network: n }),
@@ -265,5 +273,10 @@ export const useAppStore = create<AppState>((set) => ({
     const clamped = Math.max(0.25, Math.min(4, v));
     try { localStorage.setItem("sl:buildings-height", String(clamped)); } catch {}
     set({ buildingsHeightScale: clamped });
+  },
+  setBuildingsColor: (hex) => {
+    if (!/^#[0-9a-f]{6}$/i.test(hex)) return;
+    try { localStorage.setItem("sl:buildings-color", hex); } catch {}
+    set({ buildingsColor: hex });
   },
 }));

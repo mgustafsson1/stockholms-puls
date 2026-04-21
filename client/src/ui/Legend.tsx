@@ -193,13 +193,26 @@ export function Legend() {
   );
 }
 
+const BUILDING_PRESETS = [
+  "#2a3852", // default slate-blue
+  "#3b4a6a", // lighter slate
+  "#5a4a7a", // muted purple
+  "#6a4a4a", // dusty brick
+  "#4a6a5a", // forest-green
+  "#8a7a5a", // sand
+  "#c0c4cc", // light grey (daytime look)
+  "#1a1d24", // near-black
+];
+
 function BuildingsSettings() {
   const show = useAppStore((s) => s.showBuildings);
   const opacity = useAppStore((s) => s.buildingsOpacity);
   const height = useAppStore((s) => s.buildingsHeightScale);
+  const color = useAppStore((s) => s.buildingsColor);
   const setShow = useAppStore((s) => s.setShowBuildings);
   const setOpacity = useAppStore((s) => s.setBuildingsOpacity);
   const setHeight = useAppStore((s) => s.setBuildingsHeightScale);
+  const setColor = useAppStore((s) => s.setBuildingsColor);
 
   return (
     <>
@@ -246,6 +259,45 @@ function BuildingsSettings() {
             onChange={setHeight}
             format={(v) => `${v.toFixed(2)}×`}
           />
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <span style={{ fontSize: 10, color: "#8b98ad", width: 54, flexShrink: 0 }}>Färg</span>
+            <div style={{ flex: 1, display: "flex", gap: 4, flexWrap: "wrap" }}>
+              {BUILDING_PRESETS.map((c) => (
+                <button
+                  key={c}
+                  onClick={() => setColor(c)}
+                  title={c}
+                  style={{
+                    width: 16,
+                    height: 16,
+                    borderRadius: 3,
+                    background: c,
+                    border: c.toLowerCase() === color.toLowerCase()
+                      ? "2px solid #7cc4ff"
+                      : "1px solid rgba(255,255,255,0.15)",
+                    cursor: "pointer",
+                    padding: 0,
+                    flexShrink: 0,
+                  }}
+                />
+              ))}
+            </div>
+            <input
+              type="color"
+              value={color}
+              onChange={(e) => setColor(e.target.value)}
+              title="Välj fri färg"
+              style={{
+                width: 22,
+                height: 22,
+                padding: 0,
+                border: "1px solid rgba(255,255,255,0.15)",
+                borderRadius: 3,
+                background: "transparent",
+                cursor: "pointer",
+              }}
+            />
+          </div>
         </div>
       )}
     </>
