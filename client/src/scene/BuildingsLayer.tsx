@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
-import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import type { Projection } from "../data/projection";
 import { useAppStore } from "../data/store";
 
@@ -54,72 +53,118 @@ function cameraGroundFocus(camera: THREE.Camera, fallback: THREE.Vector3) {
   );
 }
 
-// Build a single extruded mesh for a list of buildings. Merging into one
-// geometry avoids a per-building draw call which would crush perf with 10k
-// buildings in Stockholm.
-function buildMergedMesh(buildings: Building[], projection: Projection): THREE.Mesh | null {
-  const geometries: THREE.BufferGeometry[] = [];
+// Triangulate a simple 2D polygon (x, z pairs) by picking the centroid as a
+// fan anchor. Good enough for building outlines since most are convex or
+// mildly concave — we accept slight errors on deeply concave cases rather
+// than pulling in earcut.
+function triangulateFan(pts: [number, number][]): number[][] {
+  let cx = 0;
+  let cz = 0;
+  for (const [x, z] of pts) { cx += x; cz += z; }
+  cx /= pts.length;
+  cz /= pts.length;
+  const tris: number[][] = [];
+  for (let i = 0; i < pts.length; i++) {
+    const a = pts[i];
+    const b = pts[(i + 1) % pts.length];
+    tris.push([cx, cz, a[0], a[1], b[0], b[1]]);
+  }
+  return tris;
+}
+
+// Build walls + roofs for a list of buildings. Walls occlude from the side,
+// roofs close the top — with a transparent material they still let the OSM
+// labels show through from directly above.
+function buildBuildingsGeometry(
+  buildings: Building[],
+  projection: Projection,
+  heightScale: number
+): THREE.BufferGeometry | null {
+  const positions: number[] = [];
+  const normals: number[] = [];
   for (const b of buildings) {
     if (b.polygon.length < 3) continue;
-    // Project each vertex into scene space (x,z in units; we handle height in
-    // y ourselves below).
-    const shape = new THREE.Shape();
-    let first = true;
-    for (const [lat, lon] of b.polygon) {
+    const topY = 0.04 + (b.height ?? 8) * HEIGHT_SCALE * heightScale;
+    const botY = 0.04 + (b.minHeight ?? 0) * HEIGHT_SCALE * heightScale;
+    if (topY - botY < 0.005) continue;
+    const projected = b.polygon.map(([lat, lon]) => {
       const [x, , z] = projection.projectArray({ lat, lon, depth: 0 });
-      if (first) { shape.moveTo(x, z); first = false; }
-      else shape.lineTo(x, z);
+      return [x, z] as [number, number];
+    });
+
+    // Walls.
+    for (let i = 0; i < projected.length; i++) {
+      const [ax, az] = projected[i];
+      const [bx, bz] = projected[(i + 1) % projected.length];
+      const ex = bx - ax;
+      const ez = bz - az;
+      const nl = Math.hypot(ex, ez) || 1;
+      const nx = ez / nl;
+      const nz = -ex / nl;
+      positions.push(
+        ax, botY, az,
+        bx, botY, bz,
+        ax, topY, az,
+        bx, botY, bz,
+        bx, topY, bz,
+        ax, topY, az,
+      );
+      for (let k = 0; k < 6; k++) normals.push(nx, 0, nz);
     }
-    const topH = (b.height ?? 8) * HEIGHT_SCALE;
-    const botH = (b.minHeight ?? 0) * HEIGHT_SCALE;
-    try {
-      const g = new THREE.ExtrudeGeometry(shape, {
-        depth: Math.max(0.002, topH - botH),
-        bevelEnabled: false,
-        steps: 1,
-        curveSegments: 2,
-      });
-      // ExtrudeGeometry extrudes along +z from a 2D shape on XY. Rotate so
-      // extrusion points up (+y), and lift by minHeight.
-      g.rotateX(-Math.PI / 2);
-      g.translate(0, 0.04 + botH, 0); // keep above OSM tile plane (y=0.02)
-      geometries.push(g);
-    } catch {
-      // Shape had self-intersections or a degenerate polygon — skip it.
+
+    // Roof — fan-triangulated around the centroid.
+    const tris = triangulateFan(projected);
+    for (const [cx, cz, ax, az, bx, bz] of tris) {
+      positions.push(cx, topY, cz, ax, topY, az, bx, topY, bz);
+      normals.push(0, 1, 0, 0, 1, 0, 0, 1, 0);
     }
   }
-  if (geometries.length === 0) return null;
+  if (positions.length === 0) return null;
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+  geo.setAttribute("normal", new THREE.Float32BufferAttribute(normals, 3));
+  return geo;
+}
 
-  const merged = mergeGeometries(geometries, false);
-  if (!merged) return null;
-  merged.computeVertexNormals();
-  geometries.forEach((g) => g.dispose());
+function buildMergedMesh(
+  buildings: Building[],
+  projection: Projection,
+  opacity: number,
+  heightScale: number
+): THREE.Mesh | null {
+  const geo = buildBuildingsGeometry(buildings, projection, heightScale);
+  if (!geo) return null;
   const material = new THREE.MeshStandardMaterial({
     color: "#2a3852",
     emissive: "#0b1422",
-    emissiveIntensity: 0.8,
+    emissiveIntensity: 0.9,
     roughness: 0.75,
     metalness: 0.05,
     transparent: true,
-    opacity: 0.85,
+    opacity,
+    side: THREE.DoubleSide,
     fog: false,
     toneMapped: false,
+    depthWrite: false,
   });
-  return new THREE.Mesh(merged, material);
+  return new THREE.Mesh(geo, material);
 }
 
 export function BuildingsLayer({ projection }: { projection: Projection }) {
   const { camera } = useThree();
-  const showBasemap = useAppStore((s) => s.showBasemap);
+  const showBuildings = useAppStore((s) => s.showBuildings);
+  const opacity = useAppStore((s) => s.buildingsOpacity);
+  const heightScale = useAppStore((s) => s.buildingsHeightScale);
   const [tileKeys, setTileKeys] = useState<Set<string>>(() => new Set());
   const loadsRef = useRef<Map<string, TileLoad>>(new Map());
+  const rawRef = useRef<Map<string, Building[]>>(new Map());
   const groupRef = useRef<THREE.Group>(null);
   const fallback = useRef(new THREE.Vector3(0, 0, 0));
   // Track camera-driven LOD on every frame but only React-setState when the
   // set of tiles to show actually changes — otherwise we'd rebuild meshes
   // continuously.
   useFrame(() => {
-    if (!showBasemap) {
+    if (!showBuildings) {
       if (tileKeys.size > 0) setTileKeys(new Set());
       return;
     }
@@ -145,9 +190,11 @@ export function BuildingsLayer({ projection }: { projection: Projection }) {
     if (!same) setTileKeys(wanted);
   });
 
-  // Fetch any new tiles that appeared in tileKeys.
+  // Fetch any new tiles that appeared in tileKeys; rebuild meshes whenever
+  // opacity or heightScale changes so the sliders feel live.
   useEffect(() => {
     const loads = loadsRef.current;
+    const raw = rawRef.current;
     let cancelled = false;
 
     // Drop meshes for tiles that left the window.
@@ -159,12 +206,32 @@ export function BuildingsLayer({ projection }: { projection: Projection }) {
           groupRef.current?.remove(load.mesh);
         }
         loads.delete(key);
+        raw.delete(key);
       }
     }
 
-    // Kick off fetches for new tiles.
+    const installMesh = (key: string) => {
+      const data = raw.get(key);
+      if (!data) return;
+      const existing = loads.get(key);
+      if (existing?.mesh) {
+        existing.mesh.geometry.dispose();
+        (existing.mesh.material as THREE.Material).dispose();
+        groupRef.current?.remove(existing.mesh);
+      }
+      const mesh = buildMergedMesh(data, projection, opacity, heightScale);
+      loads.set(key, { key, status: "ready", mesh });
+      if (mesh && groupRef.current) groupRef.current.add(mesh);
+    };
+
+    // Rebuild any already-fetched tile meshes against the new params.
     for (const key of tileKeys) {
-      if (loads.has(key)) continue;
+      if (raw.has(key)) installMesh(key);
+    }
+
+    // Kick off fetches for tiles we haven't seen yet.
+    for (const key of tileKeys) {
+      if (loads.has(key) || raw.has(key)) continue;
       loads.set(key, { key, status: "loading" });
       const [z, x, y] = key.split("/");
       (async () => {
@@ -173,12 +240,8 @@ export function BuildingsLayer({ projection }: { projection: Projection }) {
           if (!res.ok) throw new Error(`HTTP ${res.status}`);
           const data = (await res.json()) as { buildings: Building[] };
           if (cancelled) return;
-          const mesh = buildMergedMesh(data.buildings ?? [], projection);
-          const load = loads.get(key);
-          if (!load) return;
-          load.status = "ready";
-          load.mesh = mesh ?? null;
-          if (mesh && groupRef.current) groupRef.current.add(mesh);
+          raw.set(key, data.buildings ?? []);
+          installMesh(key);
         } catch {
           const load = loads.get(key);
           if (load) load.status = "failed";
@@ -186,7 +249,7 @@ export function BuildingsLayer({ projection }: { projection: Projection }) {
       })();
     }
     return () => { cancelled = true; };
-  }, [tileKeys, projection]);
+  }, [tileKeys, projection, opacity, heightScale]);
 
   // Cleanup everything on unmount.
   useEffect(() => {

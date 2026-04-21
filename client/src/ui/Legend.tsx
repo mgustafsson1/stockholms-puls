@@ -165,6 +165,7 @@ export function Legend() {
             <span style={{ width: 10, height: 10, borderRadius: 2, background: showBasemap ? "#6ba3d9" : "#6ba3d940", flexShrink: 0 }} />
             <span style={{ flex: 1 }}>OpenStreetMap-karta (CartoDB Dark)</span>
           </button>
+          <BuildingsSettings />
           <div style={{ height: 10 }} />
           <div className="legend-row"><span className="swatch" style={{ background: "#ffffff", color: "#ffffff" }} />I tid</div>
           <div className="legend-row"><span className="swatch" style={{ background: "#ffc04a", color: "#ffc04a" }} />Försenat</div>
@@ -188,6 +189,90 @@ export function Legend() {
           </div>
         </>
       )}
+    </div>
+  );
+}
+
+function BuildingsSettings() {
+  const show = useAppStore((s) => s.showBuildings);
+  const opacity = useAppStore((s) => s.buildingsOpacity);
+  const height = useAppStore((s) => s.buildingsHeightScale);
+  const setShow = useAppStore((s) => s.setShowBuildings);
+  const setOpacity = useAppStore((s) => s.setBuildingsOpacity);
+  const setHeight = useAppStore((s) => s.setBuildingsHeightScale);
+
+  return (
+    <>
+      <button
+        onClick={() => setShow(!show)}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 10,
+          padding: "5px 4px",
+          width: "100%",
+          background: "transparent",
+          border: "none",
+          color: show ? "var(--ink)" : "#5a697f",
+          cursor: "pointer",
+          fontSize: 12,
+          textAlign: "left",
+          fontFamily: "inherit",
+          borderRadius: 4,
+          marginTop: 4,
+        }}
+      >
+        <Toggle on={show} color="#8fb3e2" />
+        <span style={{ width: 10, height: 10, borderRadius: 2, background: show ? "#8fb3e2" : "#8fb3e240", flexShrink: 0 }} />
+        <span style={{ flex: 1 }}>3D-byggnader (OSM)</span>
+      </button>
+      {show && (
+        <div style={{ marginLeft: 24, marginTop: 4, marginBottom: 4, display: "flex", flexDirection: "column", gap: 6 }}>
+          <SliderRow
+            label="Opacitet"
+            value={opacity}
+            min={0.1}
+            max={1}
+            step={0.05}
+            onChange={setOpacity}
+            format={(v) => `${Math.round(v * 100)}%`}
+          />
+          <SliderRow
+            label="Höjd"
+            value={height}
+            min={0.25}
+            max={4}
+            step={0.25}
+            onChange={setHeight}
+            format={(v) => `${v.toFixed(2)}×`}
+          />
+        </div>
+      )}
+    </>
+  );
+}
+
+function SliderRow({
+  label, value, min, max, step, onChange, format,
+}: {
+  label: string; value: number; min: number; max: number; step: number;
+  onChange: (v: number) => void; format: (v: number) => string;
+}) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+      <span style={{ fontSize: 10, color: "#8b98ad", width: 54, flexShrink: 0 }}>{label}</span>
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={(e) => onChange(parseFloat(e.target.value))}
+        style={{ flex: 1, accentColor: "#8fb3e2" }}
+      />
+      <span style={{ fontSize: 10, color: "#c7cfdc", minWidth: 40, textAlign: "right", fontFamily: "JetBrains Mono, monospace" }}>
+        {format(value)}
+      </span>
     </div>
   );
 }

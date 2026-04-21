@@ -79,6 +79,10 @@ interface AppState {
   // max so the UI can normalise without recomputing it.
   chronicScores: Record<string, number>;
   chronicMax: number;
+  // 3D buildings layer configuration.
+  showBuildings: boolean;
+  buildingsOpacity: number;      // 0..1
+  buildingsHeightScale: number;  // multiplier applied to OSM heights
   // Replay controls. When `replayActive` is true we stop applying live WS
   // snapshots and instead drive `trains`/`alerts` from the server's
   // /api/history/at endpoint at `replayAt` (ms since epoch). `replayRate`
@@ -116,6 +120,9 @@ interface AppState {
   setReplayRate: (r: number) => void;
   setReplayRange: (r: { from: number; to: number; intervalMs: number } | null) => void;
   setChronicScores: (scores: Record<string, number>, max: number) => void;
+  setShowBuildings: (v: boolean) => void;
+  setBuildingsOpacity: (v: number) => void;
+  setBuildingsHeightScale: (v: number) => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -151,6 +158,21 @@ export const useAppStore = create<AppState>((set) => ({
   replayRange: null,
   chronicScores: {},
   chronicMax: 0,
+  showBuildings: (() => {
+    try { return (typeof localStorage !== "undefined" ? localStorage.getItem("sl:buildings") : null) !== "false"; } catch { return true; }
+  })(),
+  buildingsOpacity: (() => {
+    try {
+      const v = typeof localStorage !== "undefined" ? parseFloat(localStorage.getItem("sl:buildings-opacity") ?? "") : NaN;
+      return Number.isFinite(v) ? v : 0.65;
+    } catch { return 0.65; }
+  })(),
+  buildingsHeightScale: (() => {
+    try {
+      const v = typeof localStorage !== "undefined" ? parseFloat(localStorage.getItem("sl:buildings-height") ?? "") : NaN;
+      return Number.isFinite(v) ? v : 1;
+    } catch { return 1; }
+  })(),
 
   setNetwork: (n) => set({ network: n }),
   setRegions: (list) => set({ regions: list }),
@@ -230,4 +252,18 @@ export const useAppStore = create<AppState>((set) => ({
   setReplayRate: (r) => set({ replayRate: r }),
   setReplayRange: (r) => set({ replayRange: r }),
   setChronicScores: (scores, max) => set({ chronicScores: scores, chronicMax: max }),
+  setShowBuildings: (v) => {
+    try { localStorage.setItem("sl:buildings", String(v)); } catch {}
+    set({ showBuildings: v });
+  },
+  setBuildingsOpacity: (v) => {
+    const clamped = Math.max(0.1, Math.min(1, v));
+    try { localStorage.setItem("sl:buildings-opacity", String(clamped)); } catch {}
+    set({ buildingsOpacity: clamped });
+  },
+  setBuildingsHeightScale: (v) => {
+    const clamped = Math.max(0.25, Math.min(4, v));
+    try { localStorage.setItem("sl:buildings-height", String(clamped)); } catch {}
+    set({ buildingsHeightScale: clamped });
+  },
 }));
