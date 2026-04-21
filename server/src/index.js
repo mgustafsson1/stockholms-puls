@@ -289,7 +289,27 @@ app.get("/api/history/at", (req, res) => {
 const server = createServer(app);
 const wss = new WebSocketServer({ server, path: "/stream" });
 
+// Heartbeat: ping every 30 s, drop sockets that don't pong within 60 s. This
+// catches network paths that silently drop packets (proxy timeouts, sleeping
+// Mac network stacks, etc.) so the client's auto-reconnect can kick in
+// instead of a user sitting on a dead socket wondering where their data is.
+const HEARTBEAT_MS = 30_000;
+const heartbeat = setInterval(() => {
+  wss.clients.forEach((client) => {
+    if (client.readyState !== client.OPEN) return;
+    if (client.isAlive === false) {
+      console.log("[ws] terminating unresponsive client");
+      return client.terminate();
+    }
+    client.isAlive = false;
+    try { client.ping(); } catch {}
+  });
+}, HEARTBEAT_MS);
+wss.on("close", () => clearInterval(heartbeat));
+
 wss.on("connection", (ws) => {
+  ws.isAlive = true;
+  ws.on("pong", () => { ws.isAlive = true; });
   let currentRegion = null;
   let unsubscribe = null;
   let unsubscribeAI = null;
@@ -304,18 +324,29 @@ wss.on("connection", (ws) => {
 
     currentRegion = regionId;
     const source = sources.get(regionId);
+    const initial = source.snapshot();
     if (ws.readyState === ws.OPEN) {
       ws.send(JSON.stringify({ type: "region", region: regionId }));
-      ws.send(JSON.stringify({ type: "snapshot", region: regionId, data: source.snapshot() }));
+      ws.send(JSON.stringify({ type: "snapshot", region: regionId, data: initial }));
     }
+    console.log(`[ws] subscribe ${regionId} — ${initial.trains.length} vehicles cached`);
+    // Only forward snapshots whose vehicle count or timestamp differ from the
+    // last thing we pushed to this socket — cuts the 1 Hz broadcast chatter
+    // down to meaningful updates and makes the client-side logs readable.
+    let lastCount = -1;
+    let lastT = -1;
     unsubscribe = source.on((snap) => {
-      if (ws.readyState === ws.OPEN) {
-        ws.send(JSON.stringify({ type: "snapshot", region: regionId, data: snap }));
-      }
+      if (ws.readyState !== ws.OPEN) return;
+      if (snap.trains.length === lastCount && snap.t === lastT) return;
+      lastCount = snap.trains.length;
+      lastT = snap.t;
+      ws.send(JSON.stringify({ type: "snapshot", region: regionId, data: snap }));
     });
-    // Kick off an immediate refresh so the subscriber doesn't see a stale or
-    // empty snapshot while waiting up to 30s for the next scheduled poll.
-    source.ensureFresh?.();
+    // Force an immediate poll even if the source fetched seconds ago — the
+    // cached snapshot may well be empty (region just booted, or previous poll
+    // happened to return zero vehicles) and we don't want the subscriber to
+    // wait up to a full POLL_MS for fresh data.
+    source.ensureFresh?.(0);
 
     const analyst = aiAnalysts.get(regionId);
     if (analyst) {
@@ -347,10 +378,17 @@ wss.on("connection", (ws) => {
   ws.on("message", (raw) => {
     try {
       const msg = JSON.parse(raw.toString());
-      if (msg.type === "set-region" && typeof msg.region === "string" && sources.has(msg.region)) {
-        subscribe(msg.region);
+      if (msg.type === "set-region" && typeof msg.region === "string") {
+        if (sources.has(msg.region)) {
+          console.log(`[ws] recv set-region → ${msg.region} (from ${currentRegion ?? "none"})`);
+          subscribe(msg.region);
+        } else {
+          console.warn(`[ws] recv set-region with unknown region ${msg.region}`);
+        }
       }
-    } catch {}
+    } catch (err) {
+      console.warn("[ws] bad message:", err.message);
+    }
   });
 
   ws.on("close", () => {

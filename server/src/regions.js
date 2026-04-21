@@ -128,6 +128,28 @@ export const REGIONS = [
     ...DEFAULT_MATCH,
   },
   {
+    // Västmanlands Lokaltrafik (VL) — bussar i Västerås, Köping, Sala m.fl.
+    id: "vastmanland",
+    label: "Västmanland",
+    operator: "vastmanland",
+    operatorPrefixes: ["9011019"],
+    origin: { lat: 59.6099, lon: 16.5448, label: "Västerås C" },
+    bbox: { minLat: 59.3, maxLat: 60.2, minLon: 15.3, maxLon: 17.0 },
+    useTripMap: true,
+    ...DEFAULT_MATCH,
+  },
+  {
+    // Dintur — Västernorrland (Sundsvall, Härnösand, Sollefteå, Örnsköldsvik).
+    id: "vasternorrland",
+    label: "Västernorrland",
+    operator: "dintur",
+    operatorPrefixes: ["9011022"],
+    origin: { lat: 62.3908, lon: 17.3069, label: "Sundsvall C" },
+    bbox: { minLat: 62.1, maxLat: 64.0, minLon: 15.0, maxLon: 19.2 },
+    useTripMap: true,
+    ...DEFAULT_MATCH,
+  },
+  {
     // Multi-region view: pools Skåne + Halland + Blekinge + Kronoberg + Kalmar
     // so lines like Öresundståg, Krösatåg and Pågatåg are visible end-to-end.
     id: "sydsverige",

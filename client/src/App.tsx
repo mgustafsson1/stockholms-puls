@@ -19,6 +19,19 @@ export default function App() {
   const connected = useAppStore((s) => s.connected);
   const showLabels = useAppStore((s) => s.showLabels);
   const setShowLabels = useAppStore((s) => s.setShowLabels);
+  const trains = useAppStore((s) => s.trains);
+  const regionId = useAppStore((s) => s.regionId);
+  const regions = useAppStore((s) => s.regions);
+  const lastSnapshotAt = useAppStore((s) => s.lastSnapshotAt);
+  const replayActive = useAppStore((s) => s.replayActive);
+  // After a region switch `trains` is cleared and the server may need up to
+  // one poll cycle (~45 s) before data arrives. Show a "waiting for data"
+  // toast so the user doesn't assume it's broken.
+  const waitingForData = !!network && connected && !replayActive && trains.size === 0;
+  const regionLabel = regions.find((r) => r.id === regionId)?.label ?? regionId;
+  // Silence the unused-variable lint for lastSnapshotAt — we keep it in the
+  // selector list so the component re-renders when snapshots arrive.
+  void lastSnapshotAt;
 
   return (
     <div className="app">
@@ -65,6 +78,31 @@ export default function App() {
       {network && !connected && (
         <div className="loading" style={{ alignItems: "start", paddingTop: 120 }}>
           <div className="row"><div className="spinner" /> Återansluter realtidsström…</div>
+        </div>
+      )}
+      {waitingForData && (
+        <div
+          className="panel"
+          style={{
+            position: "fixed",
+            top: 80,
+            left: "50%",
+            transform: "translateX(-50%)",
+            zIndex: 10,
+            padding: "10px 16px",
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            pointerEvents: "none",
+            background: "rgba(10,15,28,0.92)",
+            border: "1px solid rgba(124,196,255,0.35)",
+          }}
+        >
+          <div className="spinner" style={{ width: 14, height: 14 }} />
+          <div style={{ fontSize: 12, color: "#c7cfdc" }}>
+            Väntar på trafikdata för <strong style={{ color: "#fff" }}>{regionLabel}</strong>
+            <span style={{ color: "#8b98ad", marginLeft: 8 }}>— första uppdatering inom ~45 s</span>
+          </div>
         </div>
       )}
     </div>

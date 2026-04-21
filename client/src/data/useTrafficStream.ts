@@ -97,16 +97,33 @@ export function useTrafficStream() {
       wsRef.current = ws;
 
       ws.onopen = () => {
+        // React StrictMode mounts each effect twice: the first mount's ws is
+        // closed by cleanup, but its async onclose runs *after* the second
+        // mount has already installed a fresh ws into wsRef. If we updated
+        // wsRef unconditionally we'd null out the live socket. Guard every
+        // handler with an identity check so zombie-close callbacks from the
+        // previous mount can't trash the current one.
+        if (wsRef.current !== ws) return;
         setConnected(true);
-        ws.send(JSON.stringify({ type: "set-region", region: currentRegionRef.current }));
+        const r = currentRegionRef.current;
+        console.info(`[stream] ws open — sending set-region ${r}`);
+        ws.send(JSON.stringify({ type: "set-region", region: r }));
       };
-      ws.onclose = () => {
+      ws.onclose = (ev) => {
+        const isCurrent = wsRef.current === ws;
+        console.info(`[stream] ws close code=${ev.code} reason=${ev.reason || "-"} clean=${ev.wasClean} current=${isCurrent}`);
+        if (!isCurrent) return;
         setConnected(false);
         wsRef.current = null;
         if (!closed) reconnectHandle = window.setTimeout(connect, 1500);
       };
-      ws.onerror = () => { ws.close(); };
+      ws.onerror = (ev) => {
+        if (wsRef.current !== ws) return;
+        console.warn("[stream] ws error", ev);
+        ws.close();
+      };
       ws.onmessage = (e) => {
+        if (wsRef.current !== ws) return; // ignore zombie-socket messages
         try {
           const msg = JSON.parse(e.data);
           if (msg.type === "hello") {
@@ -115,17 +132,26 @@ export function useTrafficStream() {
           } else if (msg.type === "region") {
             // Acknowledge region switch; snapshot follows.
           } else if (msg.type === "snapshot") {
-            // Ignore snapshots from a region we've since switched away from.
-            if (msg.region && msg.region !== currentRegionRef.current) return;
-            // Replay mode drives the store from /api/history/at; live
-            // snapshots would fight that and cause flicker.
-            if (useAppStore.getState().replayActive) return;
+            // Read the current region directly from the store — a React ref
+            // is updated inside a useEffect which runs AFTER state change, so
+            // there's a race where a freshly-pushed snapshot for the new
+            // region can arrive with the ref still holding the old one.
+            const state = useAppStore.getState();
+            const count = msg.data?.trains?.length ?? 0;
+            if (msg.region && msg.region !== state.regionId) {
+              console.info(`[stream] drop snapshot for ${msg.region} (current=${state.regionId}) trains=${count}`);
+              return;
+            }
+            if (state.replayActive) return;
+            // Only log when the payload content changes appreciably so we
+            // don't spam the console at 1 Hz with identical counts.
+            if (count !== state.trains.size) {
+              console.info(`[stream] apply snapshot ${msg.region} trains=${count}`);
+            }
             applySnapshot(msg.data);
           } else if (msg.type === "ai") {
             const { latest, error, regionId: msgRegion } = msg.data ?? {};
-            // Drop analyses destined for a region we've since switched away
-            // from so the panel never shows the wrong region's mood.
-            if (msgRegion && msgRegion !== currentRegionRef.current) return;
+            if (msgRegion && msgRegion !== useAppStore.getState().regionId) return;
             useAppStore.getState().setAIAnalysis(latest ?? null, error ?? null);
           }
         } catch (err) {
@@ -147,8 +173,26 @@ export function useTrafficStream() {
   useEffect(() => {
     currentRegionRef.current = regionId;
     const ws = wsRef.current;
-    if (ws && ws.readyState === WebSocket.OPEN) {
+    const state = ws?.readyState;
+    console.info(`[stream] region-change → ${regionId} (ws readyState=${state})`);
+    if (ws && state === WebSocket.OPEN) {
       ws.send(JSON.stringify({ type: "set-region", region: regionId }));
     }
+  }, [regionId]);
+
+  // Safety net: if the scene sits empty for >15 s after a region switch, the
+  // WS socket has likely gone silent (some network paths don't deliver
+  // onclose). Force-reconnect so the server re-pushes data and the client
+  // isn't stuck on a dead pipe.
+  useEffect(() => {
+    const t = window.setTimeout(() => {
+      const s = useAppStore.getState();
+      if (s.trains.size > 0 || !s.connected || s.replayActive) return;
+      const ws = wsRef.current;
+      if (!ws) return;
+      console.info("[stream] no data after region switch — forcing WS reconnect");
+      try { ws.close(); } catch {}
+    }, 15_000);
+    return () => window.clearTimeout(t);
   }, [regionId]);
 }
