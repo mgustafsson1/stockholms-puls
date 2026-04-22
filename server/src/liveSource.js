@@ -256,11 +256,10 @@ export class LiveSource {
       }));
       const feed = { entity: feeds.flatMap((f) => f.entity || []) };
       this.lastFetchAt = Date.now();
-      this.updateFromFeed(feed);
+      await this.updateFromFeed(feed);
       this.lastError = null;
-      // Push new data straight out rather than waiting up to broadcast
-      // interval — with a 5 s broadcast a fresh poll could otherwise sit for
-      // almost 5 s before reaching clients.
+      // Push new data once the feed has been fully folded in — we emit on
+      // poll completion instead of on a fixed heartbeat (see constructor).
       this.emit();
     } catch (err) {
       this.lastError = err.message;
@@ -400,10 +399,21 @@ export class LiveSource {
     }
   }
 
-  updateFromFeed(feed) {
+  async updateFromFeed(feed) {
     const usingTripMap = Object.keys(this.tripMap).length > 0;
     const bb = this.bbox;
+    // Stockholm polls bring in ~1800 vehicles, each needing a segment match
+    // that scans the network (~500 segments). On 1-2 CPU boxes that adds up
+    // to 500-900 ms of blocked event loop per poll — long enough that nginx
+    // gets 504s on unrelated HTTP calls. Yield every YIELD_EVERY entities so
+    // incoming requests can interleave.
+    const YIELD_EVERY = 100;
+    let processed = 0;
     for (const entity of feed.entity) {
+      if (processed > 0 && processed % YIELD_EVERY === 0) {
+        await new Promise((r) => setImmediate(r));
+      }
+      processed++;
       const v = entity.vehicle;
       if (!v?.position) continue;
       const lat = v.position.latitude;
