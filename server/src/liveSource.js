@@ -136,7 +136,11 @@ export class LiveSource {
       }
       this.alertsHandle = setInterval(() => this.pollAlerts().catch(() => {}), POLL_MS * 4);
     }, jitter);
-    this.broadcastHandle = setInterval(() => this.emit(), 1000);
+    // Snapshots run ~300 KB for Stockholm-scale regions. At 1 Hz that was
+    // ~300 KB/s of JSON.stringify + ws.send per subscriber, enough to peg
+    // a 1-CPU box on its own. Data only really changes on the 45 s poll, so
+    // 5 s is plenty for the "live" feel and ~6× cheaper.
+    this.broadcastHandle = setInterval(() => this.emit(), 5000);
     this.pruneHandle = setInterval(() => this.prune(), 20_000);
   }
 
@@ -255,6 +259,10 @@ export class LiveSource {
       this.lastFetchAt = Date.now();
       this.updateFromFeed(feed);
       this.lastError = null;
+      // Push new data straight out rather than waiting up to broadcast
+      // interval — with a 5 s broadcast a fresh poll could otherwise sit for
+      // almost 5 s before reaching clients.
+      this.emit();
     } catch (err) {
       this.lastError = err.message;
       console.warn(`[live:${this.regionId}] vehicle fetch failed:`, err.message);
