@@ -68,7 +68,24 @@ export default function App() {
         >
           {showLabels ? "Dölj etiketter" : "Visa etiketter"}
         </button>
-        <div className="footer" style={{ bottom: 60 }}>Data via Trafiklab GTFS-RT · Karta © OpenStreetMap · CartoDB · {network?.stations.length ?? "—"} stationer</div>
+        <div className="footer" style={{ bottom: 60 }}>
+          Data via Trafiklab GTFS-RT · Karta © OpenStreetMap · CartoDB · {network?.stations.length ?? "—"} stationer
+          {" · "}
+          <a
+            href="https://creativecommons.org/licenses/by/4.0/"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ color: "inherit", textDecoration: "none" }}
+            title="Licensierat under Creative Commons Attribution 4.0"
+          >CC-BY</a>
+          {" "}
+          <a
+            href="https://anders.bjarby.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ color: "#c7cfdc", textDecoration: "none", fontWeight: 500 }}
+          >Anders Bjarby</a>
+        </div>
       </div>
       {!network && (
         <div className="loading">
