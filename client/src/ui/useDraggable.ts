@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent, type RefCallback } from "react";
+import { useIsMobile } from "./useIsMobile";
 
 type Anchor =
   | { left: number; top: number }
@@ -42,6 +43,7 @@ export function useDraggable({ storageKey, defaultAnchor }: Options): Result {
   const [dragging, setDragging] = useState(false);
   const dragState = useRef<{ startX: number; startY: number; basePos: Pos } | null>(null);
   const elementRef = useRef<HTMLElement | null>(null);
+  const isMobile = useIsMobile();
 
   const setRef = useCallback<RefCallback<HTMLElement>>((el) => {
     elementRef.current = el;
@@ -96,6 +98,24 @@ export function useDraggable({ storageKey, defaultAnchor }: Options): Result {
     }
     setDragging(false);
   }, []);
+
+  // Mobile short-circuit: panels flow in a bottom-sheet container rather than
+  // floating free, so return an empty style (lets the CSS class-based layout
+  // take over) and no-op handlers so a stray touch can't wrench a panel to
+  // an off-screen position.
+  if (isMobile) {
+    return {
+      style: {},
+      ref: setRef,
+      handlers: {
+        onPointerDown: () => {},
+        onPointerMove: () => {},
+        onPointerUp: () => {},
+        onPointerCancel: () => {},
+      },
+      dragging: false,
+    };
+  }
 
   const style: CSSProperties = pos
     ? {

@@ -296,3 +296,115 @@ canvas { display: block; outline: none; }
   color: rgba(139, 152, 173, 0.5);
   pointer-events: none;
 }
+
+/* ==================== Mobile layout ==================== */
+
+/* Mobile uses a bottom-sheet "panel drawer" instead of freely floating
+ * draggable panels. The drawer holds every panel in a vertical stack; the
+ * user toggles it open via the floating Paneler button. When closed the
+ * scene covers the whole viewport.
+ */
+.mobile-panel-drawer-btn {
+  position: fixed;
+  right: 12px;
+  bottom: 12px;
+  z-index: 25;
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: rgba(10, 15, 28, 0.92);
+  border: 1px solid rgba(124, 196, 255, 0.45);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  pointer-events: auto;
+  font-family: inherit;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+}
+
+.mobile-panel-drawer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 70vh;
+  background: rgba(5, 8, 14, 0.96);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(124, 196, 255, 0.22);
+  border-radius: 18px 18px 0 0;
+  display: flex;
+  flex-direction: column;
+  z-index: 24;
+  pointer-events: auto;
+  transform: translateY(0);
+  transition: transform 0.25s ease-out;
+  box-shadow: 0 -12px 36px rgba(0, 0, 0, 0.5);
+}
+.mobile-panel-drawer.closed {
+  transform: translateY(100%);
+  pointer-events: none;
+}
+.mobile-panel-drawer-handle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px 6px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  background: rgba(5, 8, 14, 0.96);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  z-index: 1;
+}
+.mobile-panel-drawer-handle::before {
+  content: "";
+  position: absolute;
+  top: 5px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 32px;
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.18);
+}
+.mobile-panel-drawer-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 10px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Force all panels inside the drawer to flow statically in a vertical
+ * stack. The `!important` trumps component-level inline styles that would
+ * otherwise fix-position individual panels.
+ */
+@media (max-width: 640px), (pointer: coarse) {
+  .mobile-panel-drawer-body .panel {
+    position: static !important;
+    left: auto !important;
+    right: auto !important;
+    top: auto !important;
+    bottom: auto !important;
+    transform: none !important;
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    max-height: none !important;
+    margin: 0 !important;
+    box-sizing: border-box;
+    cursor: default !important;
+  }
+  .footer {
+    position: fixed;
+    bottom: 4px;
+    font-size: 8px;
+    letter-spacing: 0.1em;
+    line-height: 1.3;
+    padding: 0 12px;
+    max-width: 100vw;
+    box-sizing: border-box;
+  }
+}
