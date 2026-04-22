@@ -74,6 +74,10 @@ if ! id -u "$APP_USER" >/dev/null 2>&1; then
   say "Skapar användare $APP_USER"
   adduser --disabled-password --gecos "" "$APP_USER"
 fi
+# Ubuntu creates /home/<user> with mode 750 so nginx (www-data) can't cd in to
+# serve client/dist. Open the traversal bit — doesn't leak file contents,
+# since inner dirs still gate listing.
+chmod o+x "/home/$APP_USER"
 
 # -------- 6. Hämta koden -----------------------------------------------------
 say "Hämtar koden"
