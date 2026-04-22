@@ -576,6 +576,12 @@ export class LiveSource {
   }
 
   emit() {
+    // snapshot() allocates a fresh trains[] every call. With a 1-Hz broadcast
+    // and ~1700 vehicles in Stockholm that was a lot of garbage per second
+    // for a region nobody was watching. Skip when no WS viewers are attached
+    // — the chronic-delay tracker observes via on() but doesn't mind missing
+    // ticks during idle stretches.
+    if (this.refCount === 0) return;
     const snap = this.snapshot();
     for (const fn of this.listeners) {
       try { fn(snap); } catch {}
