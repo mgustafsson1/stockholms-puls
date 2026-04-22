@@ -246,14 +246,20 @@ export class LiveSource {
   }
 
   async pollVehicles() {
+    // Fold concurrent poll attempts into the same in-flight run — WS
+    // reconnects each fire a poll via acquire(), and several running in
+    // parallel blew through the event loop for tens of seconds.
+    if (this.vehiclesInflight) return this.vehiclesInflight;
     const key = getKey();
     if (!key) return;
     if (this.refCount === 0) return;
-    // Fold concurrent poll attempts into the same in-flight run — WS
-    // reconnects were each firing a fresh poll via acquire(), and 5 of those
-    // running in parallel blew through the event loop for tens of seconds.
-    if (this.vehiclesInflight) return this.vehiclesInflight;
-    this.vehiclesInflight = (async () => {
+    this.vehiclesInflight = this._doPollVehicles(key).finally(() => {
+      this.vehiclesInflight = null;
+    });
+    return this.vehiclesInflight;
+  }
+
+  async _doPollVehicles(key) {
     try {
       const feeds = await Promise.all(this.vehicleUrls.map(async (u) => {
         const buf = await fetchFeed(`${u}?key=${key}`);
@@ -269,12 +275,6 @@ export class LiveSource {
     } catch (err) {
       this.lastError = err.message;
       console.warn(`[live:${this.regionId}] vehicle fetch failed:`, err.message);
-    }
-    })();
-    try {
-      await this.vehiclesInflight;
-    } finally {
-      this.vehiclesInflight = null;
     }
   }
 
