@@ -134,13 +134,24 @@ export const useAppStore = create<AppState>((set) => ({
   lastSnapshotAt: 0,
   connected: false,
   source: "unknown",
-  cameraMode: "overview",
+  cameraMode: (() => {
+    try {
+      const v = typeof localStorage !== "undefined" ? localStorage.getItem("sl:camera-mode") : null;
+      const valid: CameraMode[] = ["overview", "cross-section", "follow", "anomaly"];
+      return valid.includes(v as CameraMode) ? (v as CameraMode) : "overview";
+    } catch { return "overview"; }
+  })(),
   followTrainId: null,
   hoveredStationId: null,
   hoveredTrainId: null,
   selectedTrainId: null,
   selectedStationId: null,
-  showLabels: true,
+  showLabels: (() => {
+    try {
+      const v = typeof localStorage !== "undefined" ? localStorage.getItem("sl:show-labels") : null;
+      return v == null ? true : v === "true";
+    } catch { return true; }
+  })(),
   aiAnalysis: null,
   aiError: null,
   aiEnabled: false,
@@ -156,7 +167,12 @@ export const useAppStore = create<AppState>((set) => ({
   replayActive: false,
   replayAt: 0,
   replayPlaying: false,
-  replayRate: 4,
+  replayRate: (() => {
+    try {
+      const v = typeof localStorage !== "undefined" ? parseInt(localStorage.getItem("sl:replay-rate") ?? "", 10) : NaN;
+      return Number.isFinite(v) && v > 0 ? v : 4;
+    } catch { return 4; }
+  })(),
   replayRange: null,
   chronicScores: {},
   chronicMax: 0,
@@ -243,13 +259,23 @@ export const useAppStore = create<AppState>((set) => ({
   },
   setConnected: (v) => set({ connected: v }),
   setSource: (s) => set({ source: s }),
-  setCameraMode: (m) => set({ cameraMode: m, followTrainId: m === "follow" ? useAppStore.getState().followTrainId : null }),
-  setFollowTrain: (id) => set({ followTrainId: id, cameraMode: id ? "follow" : useAppStore.getState().cameraMode }),
+  setCameraMode: (m) => {
+    try { localStorage.setItem("sl:camera-mode", m); } catch {}
+    set({ cameraMode: m, followTrainId: m === "follow" ? useAppStore.getState().followTrainId : null });
+  },
+  setFollowTrain: (id) => {
+    const nextMode = id ? "follow" : useAppStore.getState().cameraMode;
+    try { localStorage.setItem("sl:camera-mode", nextMode); } catch {}
+    set({ followTrainId: id, cameraMode: nextMode });
+  },
   setHoveredStation: (id) => set({ hoveredStationId: id }),
   setHoveredTrain: (id) => set({ hoveredTrainId: id }),
   setSelectedTrain: (id) => set({ selectedTrainId: id, selectedStationId: id ? null : useAppStore.getState().selectedStationId }),
   setSelectedStation: (id) => set({ selectedStationId: id, selectedTrainId: id ? null : useAppStore.getState().selectedTrainId }),
-  setShowLabels: (v) => set({ showLabels: v }),
+  setShowLabels: (v) => {
+    try { localStorage.setItem("sl:show-labels", String(v)); } catch {}
+    set({ showLabels: v });
+  },
   setAIAnalysis: (a, err) => set({ aiAnalysis: a, aiError: err }),
   setAIEnabled: (v) => set({ aiEnabled: v }),
   setExtraStops: (stops) => set({ extraStops: stops }),
@@ -257,7 +283,10 @@ export const useAppStore = create<AppState>((set) => ({
   setReplayActive: (v) => set({ replayActive: v, replayPlaying: false }),
   setReplayAt: (t) => set({ replayAt: t }),
   setReplayPlaying: (v) => set({ replayPlaying: v }),
-  setReplayRate: (r) => set({ replayRate: r }),
+  setReplayRate: (r) => {
+    try { localStorage.setItem("sl:replay-rate", String(r)); } catch {}
+    set({ replayRate: r });
+  },
   setReplayRange: (r) => set({ replayRange: r }),
   setChronicScores: (scores, max) => set({ chronicScores: scores, chronicMax: max }),
   setShowBuildings: (v) => {

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useDraggable } from "./useDraggable";
 import { useCollapsible, CollapseButton } from "./useCollapsible";
+import { usePersistedState } from "./usePersistedState";
 import { useAppStore } from "../data/store";
 
 type Metric = "avgDelay" | "delayed" | "stopped" | "punctuality";
@@ -43,7 +44,11 @@ export function TrendPanel() {
   const { collapsed, toggle } = useCollapsible("trend-panel");
   const regionId = useAppStore((s) => s.regionId);
   const [data, setData] = useState<TrendsResponse | null>(null);
-  const [metric, setMetric] = useState<Metric>("avgDelay");
+  const [metric, setMetric] = usePersistedState<Metric>(
+    "trend-metric",
+    "avgDelay",
+    (v): v is Metric => v === "avgDelay" || v === "delayed" || v === "stopped" || v === "punctuality",
+  );
 
   useEffect(() => {
     let cancelled = false;

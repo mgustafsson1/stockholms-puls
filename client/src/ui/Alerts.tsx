@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useAppStore } from "../data/store";
 import { useDraggable } from "./useDraggable";
 import { useCollapsible, CollapseButton } from "./useCollapsible";
+import { usePersistedState } from "./usePersistedState";
 import type { Alert } from "../data/types";
 
 type Severity = "SEVERE" | "WARNING" | "INFO" | "UNKNOWN_SEVERITY";
@@ -51,7 +52,12 @@ export function Alerts() {
   const drag = useDraggable({ storageKey: "alerts-panel", defaultAnchor: { right: 20, bottom: 280 } });
   const { collapsed, toggle } = useCollapsible("alerts-panel");
   const [query, setQuery] = useState("");
-  const [activeSeverity, setActiveSeverity] = useState<Severity | "ALL">("ALL");
+  const [activeSeverity, setActiveSeverity] = usePersistedState<Severity | "ALL">(
+    "alerts-severity",
+    "ALL",
+    (v): v is Severity | "ALL" =>
+      v === "ALL" || v === "SEVERE" || v === "WARNING" || v === "INFO" || v === "UNKNOWN_SEVERITY",
+  );
 
   const sevCounts = useMemo(() => {
     const c: Record<Severity, number> = { SEVERE: 0, WARNING: 0, INFO: 0, UNKNOWN_SEVERITY: 0 };
