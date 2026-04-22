@@ -350,9 +350,11 @@ wss.on("connection", (ws) => {
     if (unsubscribe) unsubscribe();
     if (unsubscribeAI) unsubscribeAI();
     if (currentRegion && aiAnalysts.has(currentRegion)) aiAnalysts.get(currentRegion).release();
+    if (currentRegion && sources.has(currentRegion)) sources.get(currentRegion).release?.();
 
     currentRegion = regionId;
     const source = sources.get(regionId);
+    source.acquire?.();
     const initial = source.snapshot();
     if (ws.readyState === ws.OPEN) {
       ws.send(JSON.stringify({ type: "region", region: regionId }));
@@ -424,6 +426,7 @@ wss.on("connection", (ws) => {
     if (unsubscribe) unsubscribe();
     if (unsubscribeAI) unsubscribeAI();
     if (currentRegion && aiAnalysts.has(currentRegion)) aiAnalysts.get(currentRegion).release();
+    if (currentRegion && sources.has(currentRegion)) sources.get(currentRegion).release?.();
   });
 });
 

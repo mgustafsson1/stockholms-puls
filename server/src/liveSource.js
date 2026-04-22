@@ -115,6 +115,10 @@ export class LiveSource {
     this.startTime = Date.now();
     this.lastError = null;
     this.lastFetchAt = 0;
+    // Viewer reference count — polls only run while someone is actually
+    // watching the region. 15 regions × constant polling pegs a 1-CPU box
+    // at 100% even though nobody's looking at Västmanland.
+    this.refCount = 0;
 
     // Stagger start times so regions don't all fire at the same second.
     const jitter = Math.floor(Math.random() * POLL_MS);
@@ -139,6 +143,28 @@ export class LiveSource {
   on(fn) {
     this.listeners.add(fn);
     return () => this.listeners.delete(fn);
+  }
+
+  // Called by WS subscribers. Polls only run while refCount > 0; background
+  // consumers that want state as it changes (ChronicDelayTracker) use on()
+  // without acquiring, so they observe but don't keep the region warm.
+  acquire() {
+    this.refCount++;
+    if (this.refCount === 1) {
+      // Kick an immediate poll so the new viewer doesn't wait up to POLL_MS
+      // for their first fresh tick.
+      this.pollVehicles().catch(() => {});
+      if (!this.skipTripUpdates) this.pollTripUpdates().catch(() => {});
+      this.pollAlerts().catch(() => {});
+      console.log(`[live:${this.regionId}] active (viewers=${this.refCount})`);
+    }
+  }
+
+  release() {
+    this.refCount = Math.max(0, this.refCount - 1);
+    if (this.refCount === 0) {
+      console.log(`[live:${this.regionId}] idle — polls paused`);
+    }
   }
 
   stop() {
@@ -171,6 +197,7 @@ export class LiveSource {
   async pollTripUpdates() {
     const key = getKey();
     if (!key) return;
+    if (this.refCount === 0) return;
     try {
       const feeds = await Promise.all(this.tripUpdatesUrls.map(async (u) => {
         const buf = await fetchFeed(`${u}?key=${key}`);
@@ -218,6 +245,7 @@ export class LiveSource {
   async pollVehicles() {
     const key = getKey();
     if (!key) return;
+    if (this.refCount === 0) return;
     try {
       const feeds = await Promise.all(this.vehicleUrls.map(async (u) => {
         const buf = await fetchFeed(`${u}?key=${key}`);
@@ -236,6 +264,7 @@ export class LiveSource {
   async pollAlerts() {
     const key = getKey();
     if (!key) return;
+    if (this.refCount === 0) return;
     try {
       const feeds = await Promise.all(this.alertsUrls.map(async (u) => {
         try {
