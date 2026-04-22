@@ -379,7 +379,9 @@ canvas { display: block; outline: none; }
 
 /* Force all panels inside the drawer to flow statically in a vertical
  * stack. The `!important` trumps component-level inline styles that would
- * otherwise fix-position individual panels.
+ * otherwise fix-position individual panels. We also hide the panels' own
+ * per-panel collapse button since only one panel is shown at a time via
+ * the drawer menu — a second collapse control would be redundant UI.
  */
 @media (max-width: 640px), (pointer: coarse) {
   .mobile-panel-drawer-body .panel {
@@ -396,6 +398,9 @@ canvas { display: block; outline: none; }
     margin: 0 !important;
     box-sizing: border-box;
     cursor: default !important;
+  }
+  .mobile-panel-drawer-body .panel [data-collapse-toggle] {
+    display: none !important;
   }
   .footer {
     position: fixed;

@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useTrafficStream } from "./data/useTrafficStream";
 import { useAppStore } from "./data/store";
 import { Scene } from "./scene/Scene";
@@ -14,6 +13,7 @@ import { TrendPanel } from "./ui/TrendPanel";
 import { RegionSelector } from "./ui/RegionSelector";
 import { ReplayTimeline } from "./ui/ReplayTimeline";
 import { useIsMobile } from "./ui/useIsMobile";
+import { MobileShell } from "./ui/MobileShell";
 
 export default function App() {
   useTrafficStream();
@@ -36,60 +36,27 @@ export default function App() {
   void lastSnapshotAt;
 
   const isMobile = useIsMobile();
-  const [drawerOpen, setDrawerOpen] = useState(false);
-
-  const panels = (
-    <>
-      <Header />
-      <StationSearch />
-      <RegionSelector />
-      <Controls />
-      <Legend />
-      <Alerts />
-      <InfoPanel />
-      <StationInfoPanel />
-      <AIPanel />
-      <TrendPanel />
-      <ReplayTimeline />
-    </>
-  );
 
   return (
     <div className="app">
       <Scene />
       <div className="ui-overlay">
         {isMobile ? (
-          <>
-            <button
-              className="mobile-panel-drawer-btn"
-              onClick={() => setDrawerOpen((v) => !v)}
-              aria-label={drawerOpen ? "Dölj paneler" : "Visa paneler"}
-            >
-              {drawerOpen ? "× Stäng" : "☰ Paneler"}
-            </button>
-            <div className={`mobile-panel-drawer ${drawerOpen ? "open" : "closed"}`}>
-              <div className="mobile-panel-drawer-handle">
-                <span style={{ fontSize: 11, color: "#8b98ad", letterSpacing: 0.1, textTransform: "uppercase" }}>
-                  Paneler
-                </span>
-                <button
-                  onClick={() => setDrawerOpen(false)}
-                  aria-label="Stäng paneler"
-                  style={{
-                    background: "transparent",
-                    border: "1px solid rgba(255,255,255,0.14)",
-                    color: "#c7cfdc",
-                    width: 28, height: 28, borderRadius: 6,
-                    cursor: "pointer",
-                    fontSize: 14,
-                  }}
-                >×</button>
-              </div>
-              <div className="mobile-panel-drawer-body">{panels}</div>
-            </div>
-          </>
+          <MobileShell />
         ) : (
-          panels
+          <>
+            <Header />
+            <StationSearch />
+            <RegionSelector />
+            <Controls />
+            <Legend />
+            <Alerts />
+            <InfoPanel />
+            <StationInfoPanel />
+            <AIPanel />
+            <TrendPanel />
+            <ReplayTimeline />
+          </>
         )}
         {!isMobile && <button
           onClick={() => setShowLabels(!showLabels)}

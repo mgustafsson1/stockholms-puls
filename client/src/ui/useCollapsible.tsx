@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { useIsMobile } from "./useIsMobile";
 
 export function useCollapsible(storageKey: string, initial = false) {
   const key = `panel-collapsed:${storageKey}`;
@@ -18,7 +19,11 @@ export function useCollapsible(storageKey: string, initial = false) {
   }, [key, collapsed]);
 
   const toggle = useCallback(() => setCollapsed((c) => !c), []);
-  return { collapsed, toggle, setCollapsed };
+  // On mobile the drawer menu only ever shows ONE panel at a time, so an
+  // internal collapse toggle is redundant — and worse, a user's stored
+  // collapsed state from desktop would hide the whole body. Force expanded.
+  const isMobile = useIsMobile();
+  return { collapsed: isMobile ? false : collapsed, toggle, setCollapsed };
 }
 
 export interface CollapseButtonProps {
@@ -33,6 +38,7 @@ export function CollapseButton({ collapsed, onToggle, size = 26 }: CollapseButto
       onClick={onToggle}
       aria-label={collapsed ? "Visa" : "Dölj"}
       data-nodrag
+      data-collapse-toggle
       style={{
         background: "transparent",
         border: "1px solid rgba(255,255,255,0.14)",
