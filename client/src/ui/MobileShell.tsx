@@ -9,7 +9,6 @@ import { StationInfoPanel } from "./StationInfoPanel";
 import { AIPanel } from "./AIPanel";
 import { StationSearch } from "./StationSearch";
 import { TrendPanel } from "./TrendPanel";
-import { RegionSelector } from "./RegionSelector";
 import { ReplayTimeline } from "./ReplayTimeline";
 
 type View =
@@ -41,6 +40,7 @@ export function MobileShell() {
   const selectedStationId = useAppStore((s) => s.selectedStationId);
   const regionId = useAppStore((s) => s.regionId);
   const regions = useAppStore((s) => s.regions);
+  const setRegionId = useAppStore((s) => s.setRegionId);
   const aiAnalysis = useAppStore((s) => s.aiAnalysis);
 
   const regionLabel = regions.find((r) => r.id === regionId)?.label ?? regionId;
@@ -78,7 +78,46 @@ export function MobileShell() {
       label: "Region",
       sub: regionLabel,
       icon: "◎",
-      render: () => <RegionSelector />,
+      render: () => (
+        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          {regions.map((r) => {
+            const active = r.id === regionId;
+            return (
+              <button
+                key={r.id}
+                onClick={() => {
+                  setRegionId(r.id);
+                  setView("menu");
+                }}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  padding: "12px 14px",
+                  border: `1px solid ${active ? "rgba(124,196,255,0.45)" : "rgba(255,255,255,0.08)"}`,
+                  borderRadius: 10,
+                  background: active ? "rgba(124,196,255,0.16)" : "rgba(255,255,255,0.025)",
+                  color: "#fff",
+                  cursor: "pointer",
+                  fontFamily: "inherit",
+                  textAlign: "left",
+                  fontSize: 14,
+                  fontWeight: active ? 600 : 400,
+                }}
+              >
+                <span style={{
+                  width: 8, height: 8, borderRadius: "50%",
+                  background: active ? "#7cc4ff" : "transparent",
+                  border: active ? "none" : "1px solid rgba(255,255,255,0.25)",
+                  flexShrink: 0,
+                }} />
+                <span style={{ flex: 1 }}>{r.label}</span>
+                {active && <span style={{ color: "#7cc4ff", fontSize: 12 }}>aktiv</span>}
+              </button>
+            );
+          })}
+        </div>
+      ),
     },
     {
       id: "stats",

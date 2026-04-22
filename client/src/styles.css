@@ -384,6 +384,12 @@ canvas { display: block; outline: none; }
  * the drawer menu — a second collapse control would be redundant UI.
  */
 @media (max-width: 640px), (pointer: coarse) {
+  /* Force every descendant — not just .panel — to flow statically in the
+   * drawer. Some panels (StationSearch, ReplayTimeline) wrap their content
+   * in an outer position:fixed div that would otherwise escape the drawer
+   * entirely and plant itself at the top of the viewport.
+   */
+  .mobile-panel-drawer-body > div,
   .mobile-panel-drawer-body .panel {
     position: static !important;
     left: auto !important;
@@ -399,7 +405,7 @@ canvas { display: block; outline: none; }
     box-sizing: border-box;
     cursor: default !important;
   }
-  .mobile-panel-drawer-body .panel [data-collapse-toggle] {
+  .mobile-panel-drawer-body [data-collapse-toggle] {
     display: none !important;
   }
   .footer {
