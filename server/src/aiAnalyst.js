@@ -207,9 +207,24 @@ export class AIAnalyst {
 
   async runNow() {
     if (!this.apiKey || this.inflight || this.stopped) return;
+    const snap = this.getSnapshot();
+
+    // Skip the LLM call if the state hasn't meaningfully shifted since the
+    // last analysis — no point burning tokens to restate "lugnt läge"
+    // identically every 90 s when absolutely nothing changed. We compare a
+    // cheap fingerprint of counts + alert headers.
+    const fingerprint = stateFingerprint(snap);
+    if (this.latest && fingerprint === this.lastFingerprint) {
+      // Age-out the cached analysis eventually so the "uppdaterad för N min
+      // sedan" label doesn't grow to an hour. 12 min is enough to convince
+      // viewers that we're still alive.
+      const ageMs = Date.now() - this.latest.createdAt;
+      if (ageMs < 12 * 60_000) return;
+    }
+    this.lastFingerprint = fingerprint;
+
     this.inflight = true;
     try {
-      const snap = this.getSnapshot();
       this.history.push({
         t: snap.t,
         delayed: snap.trains.filter((x) => x.status === "delayed").length,
@@ -301,6 +316,25 @@ ${priorContext}`;
     this.stopped = true;
     if (this.handle) { clearInterval(this.handle); this.handle = null; }
   }
+}
+
+// Cheap hash of the snapshot's interesting dimensions. Two snapshots with the
+// same fingerprint produce effectively the same analysis, so we skip the LLM
+// call. Includes delayed/stopped counts (obvious movers), the set of
+// affected line ids (subway traffic ebbs and flows), and alert headers (a
+// new disruption should always trigger a fresh run).
+function stateFingerprint(snap) {
+  let delayed = 0, stopped = 0, lines = new Set();
+  for (const t of snap.trains ?? []) {
+    if (t.status === "delayed") delayed++;
+    if (t.status === "stopped") stopped++;
+    if (t.status !== "ok") lines.add(t.lineId);
+  }
+  const alertHeaders = (snap.alerts ?? [])
+    .map((a) => (a.header || a.message || "").slice(0, 40))
+    .sort()
+    .join("|");
+  return `d=${delayed}|s=${stopped}|L=${[...lines].sort().join(",")}|A=${alertHeaders}`;
 }
 
 function safeParse(s) {
