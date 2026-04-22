@@ -23,6 +23,40 @@ const POLL_MS = 45_000;
 const STATION_MATCH_METERS = 120;
 const STALE_TRAIN_MS = 120_000;
 
+// Shared across every LiveSource: deduplicates concurrent fetches of the same
+// upstream URL (Sydsverige pools 5 operator feeds that the individual-RTO
+// regions already ask for) and serves any request made within `CACHE_TTL_MS`
+// of a successful fetch straight from memory. This means the Trafiklab API
+// sees exactly one hit per distinct operator+kind per ~30 s no matter how
+// many regions or subscribers we have.
+const FEED_CACHE_TTL_MS = 30_000;
+const feedCache = new Map(); // url (sans key) → { at, buf }
+const feedInflight = new Map(); // url (sans key) → Promise<Buffer>
+
+async function fetchFeed(url) {
+  // Strip the `?key=…` suffix when forming the cache key — it's the same
+  // payload regardless of which key asked for it, but we don't want the raw
+  // key leaking into any debug dump.
+  const cacheKey = url.split("?")[0];
+  const cached = feedCache.get(cacheKey);
+  if (cached && Date.now() - cached.at < FEED_CACHE_TTL_MS) {
+    return cached.buf;
+  }
+  const existing = feedInflight.get(cacheKey);
+  if (existing) return existing;
+
+  const promise = (async () => {
+    const res = await fetch(url, { headers: { "Accept-Encoding": "gzip, deflate" } });
+    if (!res.ok) throw new Error(`HTTP ${res.status} at ${cacheKey}`);
+    const buf = Buffer.from(await res.arrayBuffer());
+    feedCache.set(cacheKey, { at: Date.now(), buf });
+    return buf;
+  })()
+    .finally(() => feedInflight.delete(cacheKey));
+  feedInflight.set(cacheKey, promise);
+  return promise;
+}
+
 export function hasTrafiklabKey() {
   return !!(process.env.TRAFIKLAB_KEY || process.env.TRAFIKLAB_API_KEY);
 }
@@ -139,9 +173,7 @@ export class LiveSource {
     if (!key) return;
     try {
       const feeds = await Promise.all(this.tripUpdatesUrls.map(async (u) => {
-        const res = await fetch(`${u}?key=${key}`, { headers: { "Accept-Encoding": "gzip, deflate" } });
-        if (!res.ok) throw new Error(`HTTP ${res.status} at ${u}`);
-        const buf = Buffer.from(await res.arrayBuffer());
+        const buf = await fetchFeed(`${u}?key=${key}`);
         return transit_realtime.FeedMessage.decode(buf);
       }));
       const feed = { entity: feeds.flatMap((f) => f.entity || []) };
@@ -188,9 +220,7 @@ export class LiveSource {
     if (!key) return;
     try {
       const feeds = await Promise.all(this.vehicleUrls.map(async (u) => {
-        const res = await fetch(`${u}?key=${key}`, { headers: { "Accept-Encoding": "gzip, deflate" } });
-        if (!res.ok) throw new Error(`HTTP ${res.status} at ${u}`);
-        const buf = Buffer.from(await res.arrayBuffer());
+        const buf = await fetchFeed(`${u}?key=${key}`);
         return transit_realtime.FeedMessage.decode(buf);
       }));
       const feed = { entity: feeds.flatMap((f) => f.entity || []) };
@@ -208,10 +238,12 @@ export class LiveSource {
     if (!key) return;
     try {
       const feeds = await Promise.all(this.alertsUrls.map(async (u) => {
-        const res = await fetch(`${u}?key=${key}`, { headers: { "Accept-Encoding": "gzip, deflate" } });
-        if (!res.ok) return { entity: [] };
-        const buf = Buffer.from(await res.arrayBuffer());
-        return transit_realtime.FeedMessage.decode(buf);
+        try {
+          const buf = await fetchFeed(`${u}?key=${key}`);
+          return transit_realtime.FeedMessage.decode(buf);
+        } catch {
+          return { entity: [] };
+        }
       }));
       const feed = { entity: feeds.flatMap((f) => f.entity || []) };
       const now = Date.now();

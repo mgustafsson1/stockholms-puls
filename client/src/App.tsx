@@ -68,23 +68,26 @@ export default function App() {
         >
           {showLabels ? "Dölj etiketter" : "Visa etiketter"}
         </button>
-        <div className="footer" style={{ bottom: 60 }}>
-          Data via Trafiklab GTFS-RT · Karta © OpenStreetMap · CartoDB · {network?.stations.length ?? "—"} stationer
-          {" · "}
-          <a
-            href="https://creativecommons.org/licenses/by/4.0/"
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ color: "inherit", textDecoration: "none" }}
-            title="Licensierat under Creative Commons Attribution 4.0"
-          >CC-BY</a>
-          {" "}
-          <a
-            href="https://anders.bjarby.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ color: "#c7cfdc", textDecoration: "none", fontWeight: 500 }}
-          >Anders Bjarby</a>
+        <div className="footer" style={{ bottom: 60, textAlign: "center", lineHeight: 1.6 }}>
+          <div>
+            Data via Trafiklab GTFS-RT · Karta © OpenStreetMap · CartoDB · {network?.stations.length ?? "—"} stationer
+          </div>
+          <div style={{ color: "#fff" }}>
+            <a
+              href="https://creativecommons.org/licenses/by/4.0/"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: "inherit", textDecoration: "none", pointerEvents: "auto" }}
+              title="Licensierat under Creative Commons Attribution 4.0"
+            >CC-BY</a>
+            {" "}
+            <a
+              href="https://anders.bjarby.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: "inherit", textDecoration: "none", pointerEvents: "auto", fontWeight: 600 }}
+            >Anders Bjarby</a>
+          </div>
         </div>
       </div>
       {!network && (

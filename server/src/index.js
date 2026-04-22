@@ -127,7 +127,14 @@ app.post("/api/_snapshot", async (req, res) => {
   res.json({ ok: true, file });
 });
 
+// These three endpoints serve static-ish data that only changes when the
+// server restarts with a rebuilt network.json / stops.json. Long browser
+// caches + ETag let a CDN / caching proxy handle returning visitors without
+// hitting Node at all.
+const STATIC_CACHE = "public, max-age=300, stale-while-revalidate=3600";
+
 app.get("/api/regions", (_req, res) => {
+  res.set("Cache-Control", STATIC_CACHE);
   res.json({
     defaultRegion: DEFAULT_REGION,
     regions: REGIONS
@@ -145,6 +152,7 @@ app.get("/api/network", (req, res) => {
   const regionId = String(req.query.region || DEFAULT_REGION);
   const network = networks.get(regionId);
   if (!network) return res.status(404).json({ error: "unknown region" });
+  res.set("Cache-Control", STATIC_CACHE);
   res.json(network);
 });
 
@@ -158,6 +166,7 @@ app.get("/api/stops", (req, res) => {
   const stopsPath = resolve(__dirname, `../data/regions/${regionId}/stops.json`);
   try {
     const stops = JSON.parse(readFileSync(stopsPath, "utf8"));
+    res.set("Cache-Control", STATIC_CACHE);
     res.json(stops);
   } catch {
     // Missing file just means the extractor hasn't been run — return empty.
