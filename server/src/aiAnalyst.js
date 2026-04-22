@@ -160,6 +160,8 @@ export class AIAnalyst {
     this.history = [];
     this.priorAnalyses = []; // ring of recent summaries+predictions for feedback
     this.inflight = false;
+    this.lastFingerprint = null;
+    this.lastFullRunAt = 0; // wall-clock ms of last real LLM call
     this.apiKey = process.env.OPENROUTER_KEY ?? process.env.OPENROUTER_API_KEY ?? null;
     this.stopped = false;
     this.lastError = null;
@@ -214,12 +216,20 @@ export class AIAnalyst {
     // identically every 90 s when absolutely nothing changed. We compare a
     // cheap fingerprint of counts + alert headers.
     const fingerprint = stateFingerprint(snap);
-    if (this.latest && fingerprint === this.lastFingerprint) {
-      // Age-out the cached analysis eventually so the "uppdaterad för N min
-      // sedan" label doesn't grow to an hour. 12 min is enough to convince
-      // viewers that we're still alive.
-      const ageMs = Date.now() - this.latest.createdAt;
-      if (ageMs < 12 * 60_000) return;
+    const unchangedSinceLast = this.latest && fingerprint === this.lastFingerprint;
+    if (unchangedSinceLast) {
+      const ageMs = Date.now() - this.lastFullRunAt;
+      // Force a fresh LLM pass every 5 min even if state looks identical —
+      // traffic patterns shift subtly over a quarter-hour and we want the
+      // model to have a chance to notice.
+      if (ageMs < 5 * 60_000) {
+        // Bump the cached analysis's timestamp and re-emit so "uppdaterad
+        // för N sek sedan" stays at 0s in the UI — keeps the live feel
+        // without burning tokens.
+        this.latest = { ...this.latest, createdAt: Date.now() };
+        this.emit();
+        return;
+      }
     }
     this.lastFingerprint = fingerprint;
 
@@ -272,6 +282,7 @@ ${priorContext}`;
       if (!parsed) throw new Error(`could not parse JSON: ${content.slice(0, 160)}`);
 
       const elapsed = Date.now() - started;
+      this.lastFullRunAt = Date.now();
       this.latest = {
         createdAt: Date.now(),
         elapsedMs: elapsed,
