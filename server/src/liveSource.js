@@ -46,7 +46,13 @@ async function fetchFeed(url) {
   if (existing) return existing;
 
   const promise = (async () => {
-    const res = await fetch(url, { headers: { "Accept-Encoding": "gzip, deflate" } });
+    // 15 s upstream timeout — Trafiklab occasionally leaves a request
+    // hanging. Without this the inflight entry never cleared, so every
+    // future pollVehicles ended up awaiting the same dead promise forever.
+    const res = await fetch(url, {
+      headers: { "Accept-Encoding": "gzip, deflate" },
+      signal: AbortSignal.timeout(15_000),
+    });
     if (!res.ok) throw new Error(`HTTP ${res.status} at ${cacheKey}`);
     const buf = Buffer.from(await res.arrayBuffer());
     feedCache.set(cacheKey, { at: Date.now(), buf });
