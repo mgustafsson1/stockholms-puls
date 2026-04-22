@@ -65,7 +65,7 @@ export function Scene() {
         </>
       )}
 
-      <EffectComposer multisampling={0} disableNormalPass>
+      <EffectComposer multisampling={0}>
         <Bloom
           mipmapBlur
           intensity={1.4}

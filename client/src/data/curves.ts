@@ -18,7 +18,7 @@ export interface LineCurve {
   id: string;
   color: string;
   mode: Mode;
-  curve: THREE.Curve<THREE.Vector3>;
+  curve: THREE.CatmullRomCurve3;
   points: THREE.Vector3[];
   length: number;
 }

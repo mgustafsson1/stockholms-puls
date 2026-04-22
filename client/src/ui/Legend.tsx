@@ -31,6 +31,7 @@ const MODE_INFO: Record<Mode, { label: string; color: string }> = {
   lightrail: { label: "Spårväg & lokalbanor", color: "#b084ff" },
   tram:      { label: "Spårvagn", color: "#f4c430" },
   ferry:     { label: "Pendelbåt", color: "#24d4d4" },
+  bus:       { label: "Buss", color: "#7f88a0" },
 };
 
 function autoGroups(lines: Line[]): Group[] {

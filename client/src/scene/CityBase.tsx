@@ -37,7 +37,15 @@ export function CityBase({ projection }: { projection: Projection }) {
         return new THREE.Vector3(x, 0, z);
       });
       scenePts.push(scenePts[0].clone());
-      return new THREE.BufferGeometry().setFromPoints(scenePts);
+      const geo = new THREE.BufferGeometry().setFromPoints(scenePts);
+      const mat = new THREE.LineBasicMaterial({
+        color: "#4ca5e8",
+        transparent: true,
+        opacity: 0.55,
+      });
+      const line = new THREE.Line(geo, mat);
+      line.position.set(0, 0.002, 0);
+      return line;
     });
   }, [projection]);
 
@@ -86,11 +94,8 @@ export function CityBase({ projection }: { projection: Projection }) {
           <meshBasicMaterial color="#123354" transparent opacity={0.14} depthWrite={false} blending={THREE.AdditiveBlending} />
         </mesh>
       ))}
-      {waterOutlines.map((geo, i) => (
-        <line key={`wl-${i}`} position={[0, 0.002, 0]}>
-          <primitive object={geo} attach="geometry" />
-          <lineBasicMaterial color="#4ca5e8" transparent opacity={0.55} linewidth={1} />
-        </line>
+      {waterOutlines.map((line, i) => (
+        <primitive key={`wl-${i}`} object={line} />
       ))}
 
       {geologyGeos.map(({ y, opacity, radius }, i) => (

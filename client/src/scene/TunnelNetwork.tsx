@@ -32,6 +32,7 @@ const MODE_STYLE: Record<Mode, StyleSpec> = {
   lightrail: { coreRadius: 0.07, glowRadius: 0.24, coreOpacity: 0.82, glowOpacity: 0.06, emissiveIntensity: 1.6, segmentsPerUnit: 2.0 },
   tram:      { coreRadius: 0.05, glowRadius: 0.18, coreOpacity: 0.80, glowOpacity: 0.05, emissiveIntensity: 1.4, segmentsPerUnit: 2.4 },
   ferry:     { coreRadius: 0.04, glowRadius: 0.22, coreOpacity: 0.45, glowOpacity: 0.10, emissiveIntensity: 1.0, segmentsPerUnit: 1.2 },
+  bus:       { coreRadius: 0.04, glowRadius: 0.14, coreOpacity: 0.70, glowOpacity: 0.04, emissiveIntensity: 1.0, segmentsPerUnit: 2.4 },
 };
 
 function ModeLine({ curve, color, length, mode }: { curve: THREE.CatmullRomCurve3; color: string; length: number; mode: Mode }) {
