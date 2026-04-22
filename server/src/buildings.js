@@ -6,6 +6,7 @@
 // doesn't re-fetch everything.
 
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
+import { readFile, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -92,7 +93,11 @@ export async function getBuildingsForTile(z, x, y) {
 
   if (existsSync(cachePath)) {
     try {
-      const raw = JSON.parse(readFileSync(cachePath, "utf8"));
+      // readFileSync was blocking the event loop for 5-20 ms per ~400 KB
+      // tile. With 20+ tiles loading at startup that's hundreds of ms of
+      // stalled HTTP responses elsewhere — enough to drive nginx 504s on a
+      // 1-CPU box. Async read lets other requests interleave.
+      const raw = JSON.parse(await readFile(cachePath, "utf8"));
       if (raw.fetchedAt && Date.now() - raw.fetchedAt < TTL_MS) {
         return raw.buildings;
       }
@@ -109,7 +114,7 @@ export async function getBuildingsForTile(z, x, y) {
   const bbox = tileToBbox(15, tileX, tileY);
   const buildings = await queryOverpass(bbox);
   try {
-    writeFileSync(cachePath, JSON.stringify({ fetchedAt: Date.now(), buildings }));
+    await writeFile(cachePath, JSON.stringify({ fetchedAt: Date.now(), buildings }));
   } catch (err) {
     console.warn("[buildings] cache write failed:", err.message);
   }
