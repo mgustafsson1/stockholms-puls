@@ -267,6 +267,10 @@ app.get("/api/trends", (req, res) => {
   const regionId = String(req.query.region || DEFAULT_REGION);
   const rec = trendRecorders.get(regionId);
   if (!rec) return res.status(404).json({ error: "unknown region" });
+  // Trend samples only tick every 30 s, so letting the browser (and any
+  // upstream CDN) hold onto the response for ~20 s means ~3× fewer round
+  // trips to node — small payload but the server CPU budget is tight.
+  res.set("Cache-Control", "public, max-age=20, stale-while-revalidate=30");
   res.json(rec.snapshot());
 });
 
@@ -277,6 +281,7 @@ app.get("/api/history/range", (req, res) => {
   const regionId = String(req.query.region || DEFAULT_REGION);
   const rec = historyRecorders.get(regionId);
   if (!rec) return res.status(404).json({ error: "unknown region" });
+  res.set("Cache-Control", "public, max-age=30, stale-while-revalidate=60");
   res.json(rec.range());
 });
 // OSM 3D building geometry for a mercator tile. Client asks for one tile at
@@ -302,6 +307,9 @@ app.get("/api/chronic", (req, res) => {
   const regionId = String(req.query.region || DEFAULT_REGION);
   const tracker = chronicTrackers.get(regionId);
   if (!tracker) return res.status(404).json({ error: "unknown region" });
+  // Chronic scores integrate over ~24 h so even a minute of staleness is
+  // fine — browser cache keeps the polling panel off node's back.
+  res.set("Cache-Control", "public, max-age=60, stale-while-revalidate=120");
   res.json(tracker.getScores());
 });
 app.get("/api/history/at", (req, res) => {
